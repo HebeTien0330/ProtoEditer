@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2024/9/24 10:08:32
 :@LastEditors: tangchengqin
-:@LastEditTime: 2024/9/24 10:08:32
+:@LastEditTime: 2025/1/10 17:58:33
 :Description: 
 :Copyright: Copyright (©)}) 2024 Clarify. All rights reserved.
 '''
@@ -11,125 +11,144 @@ from .event import Event
 
 class EventManager:
 
-    _instance = None
+    __isinstance = None
 
-    def __new__(cls):
-        if not cls._instance:
-            cls._instance = EventManager()
-        return cls._instance
+    def __new__(cls, *args, **kwargs):
+        if cls.__isinstance:
+            return cls.__isinstance
+        cls.__isinstance = object.__new__(cls)
+        return cls.__isinstance
     
-    def __init__(self, EventName, Callback, Filter=None):
-        self.m_EventMap = {}
-        self.m_OnceEventMap = {}
-        self.m_Counter = 1
+    def __init__(self):
+        self.m_eventMap = {}
+        self.m_onceEventMap = {}
+        self.m_counter = 1
 
-    def Listen(self, EventName, Callback, Filter=None):
-        CallbackList = self.m_EventMap.get(EventName, [])
-        EvtId = self.m_Counter
-        CallbackList.append(Event(EvtId, EventName, Callback, Filter))
-        self.m_Counter += 1
-        return EvtId
+    def listen(self, eventName, callback, filter=None):
+        callbackList = self.m_eventMap.get(eventName, [])
+        evtId = self.m_counter
+        callbackList.append(Event(evtId, eventName, callback, filter))
+        self.m_eventMap[eventName] = callbackList
+        self.m_counter += 1
+        return evtId
     
-    def ListenOnce(self, EventName, Callback, Filter=None):
-        CallbackList = self.m_OnceEventMap.get(EventName, [])
-        EvtId = self.m_Counter
-        CallbackList.append(Event(EvtId, EventName, Callback, Filter))
-        self.m_Counter += 1
-        return EvtId
+    def listenOnce(self, eventName, callback, filter=None):
+        callbackList = self.m_onceEventMap.get(eventName, [])
+        evtId = self.m_counter
+        callbackList.append(Event(evtId, eventName, callback, filter))
+        self.m_onceEventMap[eventName] = callbackList
+        self.m_counter += 1
+        return evtId
     
-    def On(self, EventName, Callback, Filter=None, Once=False):
-        if Once:
-            return self.ListenOnce(EventName, Callback, Filter)
-        return self.Listen(EventName, Callback, Filter)
+    def on(self, eventName, callback, filter=None, once=False):
+        if once:
+            return self.listenOnce(eventName, callback, filter)
+        return self.listen(eventName, callback, filter)
     
-    def Cancel(self, EventName, EvtId):
-        EventList = self.m_EventMap.get(EventName)
-        if not EventList:
+    def cancel(self, eventName, evtId):
+        eventList = self.m_eventMap.get(eventName)
+        if not eventList:
             return False
-        for idx, Event in enumerate(EventList):
-            if Event.GetEvtId() != EvtId:
+        for idx, event in enumerate(eventList):
+            if event.getEvtId() != evtId:
                 continue
-            EventList.pop(idx)
+            eventList.pop(idx)
             break
         return True
     
-    def CancelOnce(self, EventName, EvtId):
-        EventList = self.m_OnceEventMap.get(EventName)
-        if not EventList:
+    def cancelOnce(self, eventName, evtId):
+        eventList = self.m_onceEventMap.get(eventName)
+        if not eventList:
             return False
-        for idx, Event in enumerate(EventList):
-            if Event.GetEvtId() != EvtId:
+        for idx, event in enumerate(eventList):
+            if event.getEvtId() != evtId:
                 continue
-            EventList.pop(idx)
+            eventList.pop(idx)
             break
         return True
 
-    def CancelAll(self, EventName):
-        del self.m_EventMap[EventName]
-        del self.m_OnceEventMap[EventName]
+    def cancelAll(self, eventName):
+        del self.m_eventMap[eventName]
+        del self.m_onceEventMap[eventName]
         return True
 
-    def Off(self, EventName, EvtId=None, Once=False):
-        if not EvtId:
-            return self.CancelAll(EventName)
-        if Once:
-            return self.CancelOnce(EventName, EvtId)
-        return self.Cancel(EventName, EvtId)
+    def off(self, eventName, evtId=None, once=False):
+        if not evtId:
+            return self.cancelAll(eventName)
+        if once:
+            return self.cancelOnce(eventName, evtId)
+        return self.cancel(eventName, evtId)
     
-    def Execute(self, EventName, EvtId=None, *args, **kwargs):
-        EventList = self.m_EventMap.get(EventName)
-        if not EventList:
+    def execute(self, eventName, evtId=None, *args, **kwargs):
+        eventList = self.m_eventMap.get(eventName)
+        if not eventList:
             return False
-        if EvtId:
-            for Event in EventList:
-                if Event.GetEvtId() != EvtId:
+        if evtId:
+            for event in eventList:
+                if event.getEvtId() != evtId:
                     continue
-                Event.Execute(*args, **kwargs)
+                event.execute(*args, **kwargs)
                 break
             else:
                 return False
         else:
-            for Event in EventList:
-                Event.Execute(*args, **kwargs)
+            for event in eventList:
+                event.execute(*args, **kwargs)
         return True
     
-    def ExecuteOnce(self, EventName, EvtId=None, *args, **kwargs):
-        EventList = self.m_OnceEventMap.get(EventName)
-        if not EventList:
+    def executeOnce(self, eventName, evtId=None, *args, **kwargs):
+        eventList = self.m_onceEventMap.get(eventName)
+        if not eventList:
             return False
-        if EvtId:
-            for idx, Event in enumerate(EventList):
-                if Event.GetEvtId() != EvtId:
+        if evtId:
+            for idx, event in enumerate(eventList):
+                if event.getEvtId() != evtId:
                     continue
-                Event.Execute(*args, **kwargs)
-                EventList.pop(idx)
+                event.execute(*args, **kwargs)
+                eventList.pop(idx)
                 break
             else:
                 return False
         else:
-            for idx, Event in enumerate(EventList):
-                Event.Execute(*args, **kwargs)
-            del self.m_OnceEventMap[EventName]
+            for idx, event in enumerate(eventList):
+                event.execute(*args, **kwargs)
+            del self.m_onceEventMap[eventName]
         return True
 
-    def Call(self, EventName, EvtId=None, *args, **kwargs):
-        res1 = self.Execute(EventName, EvtId, *args, **kwargs)
-        res2 = self.ExecuteOnce(EventName, EvtId, *args, **kwargs)
+    def call(self, eventName, evtId=None, *args, **kwargs):
+        res1 = self.execute(eventName, evtId, *args, **kwargs)
+        res2 = self.executeOnce(eventName, evtId, *args, **kwargs)
         return res1 or res2
     
 
-def Listen(EventName, Callback, Filter=None, Once=False):
-    return EventManager().On(EventName, Callback, Filter, Once)
+if "g_EvtManager" not in globals():
+    global g_EvtManager
+    g_EvtManager = EventManager()
 
-def ListenMulti(EventList):
-    Res = []
-    for EventName, Callback, Filter, Once in EventList:
-        EvtId = Listen(EventName, Callback, Filter, Once)
-        Res.append(EvtId)
-    return Res
+def getEvtManager():
+    if "g_EvtManager" not in globals():
+        global g_EvtManager
+        g_EvtManager = EventManager()
+    return g_EvtManager
 
-def Cancel(EventName, EvtId=None, Once=False):
-    return EventManager().Off(EventName, EvtId, Once)
+def listen(eventName, callback, filter=None, once=False):
+    return getEvtManager().on(eventName, callback, filter, once)
 
-def OnEvent(EventName, EvtId=None, *args, **kwargs):
-    return EventManager().Call(EventName, EvtId, *args, **kwargs)
+def listenMulti(eventList):
+    evtManager = getEvtManager()
+    res = []
+    for eventName, callback, filter, once in eventList:
+        evtId = evtManager.on(eventName, callback, filter, once)
+        res.append(evtId)
+    return res
+
+def cancel(eventName, evtId=None, once=False):
+    return getEvtManager().off(eventName, evtId, once)
+
+def onEvent(eventName, evtId=None, *args, **kwargs):
+    return getEvtManager().call(eventName, evtId, *args, **kwargs)
+
+def installEventSystem(target):
+    funcList = [listen, listenMulti, cancel, onEvent]
+    for func in funcList:
+        setattr(target, func.__name__, func)

@@ -9,16 +9,16 @@
 
 class Event:
 
-    def __init__(self, EvtId, EventName, Callback, Filter=None):
-        self.m_EvtId = EvtId
-        self.m_EventName = EventName
-        self.m_Callback = Callback
-        self.m_Filter = Filter
+    def __init__(self, evtId, eventName, callback, filter=None):
+        self.m_evtId = evtId
+        self.m_eventName = eventName
+        self.m_callback = callback
+        self.m_filter = filter
 
-    def GetEvtId(self):
-        return self.m_EvtId
+    def getEvtId(self):
+        return self.m_evtId
 
-    def Execute(self, *args, **kwargs):
-        if self.m_Filter and self.m_Filter(*args, **kwargs):
+    def execute(self, *args, **kwargs):
+        if self.m_filter and self.m_filter(*args, **kwargs):
             return
-        self.m_Callback(*args, **kwargs)
+        self.m_callback(*args, **kwargs)

@@ -1,1 +1,1 @@
-from .manager import Listen, ListenMulti, Cancel, OnEvent
+from .manager import installEventSystem

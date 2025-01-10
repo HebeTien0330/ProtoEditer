@@ -7,12 +7,14 @@
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog, QSplitter
+from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QSplitter
 from PyQt5.QtWidgets import QWidget, QVBoxLayout
+from components.event import installEventSystem
 from src.menuBar import ManuBarManager
 from src.fileSystem import FileSystem
 
 class MainWindow(QMainWindow):
+
     def __init__(self):
         super().__init__()
         self.setWindowTitle("协议编辑器")
@@ -39,6 +41,8 @@ class MainWindow(QMainWindow):
         splitter.setStretchFactor(0, 1)  # 文件系统组件
         splitter.setStretchFactor(1, 50)  # 主窗口内容
 
+        installEventSystem(self)
+
     def centerOnScreen(self):
         screen_geometry = QApplication.desktop().screenGeometry()
         x = (screen_geometry.width() - self.width()) / 2
@@ -63,9 +67,7 @@ class MainWindow(QMainWindow):
         QMessageBox.information(self, "新建(N)", "新建文件")
 
     def openFile(self):
-        folder_path = QFileDialog.getExistingDirectory(self, "打开文件夹", "")
-        if folder_path:
-            self.m_fileSystem.update(folder_path)
+        self.onEvent("onOpenFile")
 
     def saveFile(self):
         QMessageBox.information(self, "保存(S)", "保存文件")

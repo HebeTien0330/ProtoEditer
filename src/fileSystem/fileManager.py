@@ -6,8 +6,9 @@
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
-from PyQt5.QtWidgets import QTreeView, QFileSystemModel
+from PyQt5.QtWidgets import QTreeView, QFileSystemModel, QFileDialog
 from PyQt5.QtCore import QDir
+from components.event import installEventSystem
 
 class FileSystem:
     
@@ -20,6 +21,14 @@ class FileSystem:
         self.m_treeView.setColumnWidth(0, 250)
         self.m_window.setCentralWidget(self.m_treeView)
 
+        installEventSystem(self)
+        self.listen("onOpenFile", self.onOpenFile)
+
     def update(self, path):
         self.m_model.setRootPath(path)
         self.m_treeView.setRootIndex(self.m_model.index(path))
+
+    def onOpenFile(self):
+        folder_path = QFileDialog.getExistingDirectory(self.m_window, "打开文件夹", "")
+        if folder_path:
+            self.update(folder_path)
