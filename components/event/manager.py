@@ -28,6 +28,7 @@ class EventManager:
         callbackList = self.m_eventMap.get(eventName, [])
         evtId = self.m_counter
         callbackList.append(Event(evtId, eventName, callback, filter))
+        self.m_eventMap[eventName] = callbackList
         self.m_counter += 1
         return evtId
     
@@ -35,6 +36,7 @@ class EventManager:
         callbackList = self.m_onceEventMap.get(eventName, [])
         evtId = self.m_counter
         callbackList.append(Event(evtId, eventName, callback, filter))
+        self.m_onceEventMap[eventName] = callbackList
         self.m_counter += 1
         return evtId
     
@@ -145,3 +147,8 @@ def cancel(eventName, evtId=None, once=False):
 
 def onEvent(eventName, evtId=None, *args, **kwargs):
     return getEvtManager().call(eventName, evtId, *args, **kwargs)
+
+def installEventSystem(target):
+    funcList = [listen, listenMulti, cancel, onEvent]
+    for func in funcList:
+        setattr(target, func.__name__, func)
