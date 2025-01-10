@@ -60,7 +60,8 @@ if "g_Logger" not in globals():
 
 def getLogger():
     if "g_Logger" not in globals():
-        return Logger()
+        global g_cache
+        g_Logger = Logger()
     return g_Logger
 
 def logfile(src, text):

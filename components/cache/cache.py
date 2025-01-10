@@ -57,6 +57,7 @@ if "g_cache" not in globals():
 
 def getCache():
     if "g_cache" not in globals():
+        global g_cache
         g_cache = Cache()
     return g_cache
 
