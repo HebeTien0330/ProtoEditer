@@ -70,23 +70,23 @@ class MainWindow(QMainWindow):
     def newFile(self):
         dialog = NewProjectDialog(self)
         if dialog.exec_() == QDialogButtonBox.Ok:
-            project_name = dialog.getProjectName()
-            save_path = dialog.getSavePath()
-            log_path = dialog.getLogPath()
+            projectName = dialog.getProjectName()
+            savePath = dialog.getSavePath()
+            logPath = dialog.getLogPath()
 
             # 验证输入
-            if not project_name:
+            if not projectName:
                 QMessageBox.warning(self, "警告", "项目名称不能为空")
                 return
-            if not save_path:
+            if not savePath:
                 QMessageBox.warning(self, "警告", "保存路径不能为空")
                 return
-            if not log_path:
+            if not logPath:
                 QMessageBox.warning(self, "警告", "日志路径不能为空")
                 return
 
             # 处理新建项目逻辑
-            self.createProject(project_name, save_path, log_path)
+            self.createProject(projectName, savePath, logPath)
 
     def openFile(self):
         self.onEvent("onOpenFile")
@@ -113,6 +113,9 @@ class MainWindow(QMainWindow):
             old_widget.setParent(None)
         self.mainLayout.insertWidget(1, widget)
         self.mainContent = widget
+
+    def createProject(self, projectName, savePath, logPath):
+        pass
 
 
 if __name__ == "__main__":
