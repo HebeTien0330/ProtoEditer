@@ -2,11 +2,11 @@
 :@Author: tangchengqin
 :@Date: 2025/1/10 16:41:49
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/10 16:41:49
+:@LastEditTime: 2025/1/11 17:35:46
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
-from logger import logfile
+from components.logger import logfile
 import pickle
 import os
 
@@ -15,6 +15,7 @@ class Cache:
     def __init__(self):
         self.m_data = {}
         self.m_dirty = 0        # 脏标记
+        self.m_cachePath = None
 
     def __setattr__(self, key, value):
         self.__dict__[key] = value
@@ -22,10 +23,10 @@ class Cache:
 
     def load(self):
         logfile("cache", "load cache start!")
-        if not os.path.exists("cache.pkl"):
-            logfile("cache", "cache.pkl does not exist!")
+        if not os.path.exists(self.m_cachePath):
+            logfile("cache", f"{self.m_cachePath} does not exist!")
             return
-        with open("cache.pkl", "rb") as pickleFile:
+        with open(self.m_cachePath, "rb") as pickleFile:
             loadedCache = pickle.load(pickleFile)
             if isinstance(loadedCache, Cache):
                 self.m_data = loadedCache.m_data
@@ -38,7 +39,7 @@ class Cache:
         if not self.m_dirty:
             return
         logfile("cache", "save cache start!")
-        with open("cache.pkl", "wb") as pickleFile:
+        with open(self.m_cachePath, "wb") as pickleFile:
             pickle.dump(self, pickleFile)
             self.m_dirty = 0
         logfile("cache", "save cache end!")
@@ -60,6 +61,13 @@ def getCache():
         global g_cache
         g_cache = Cache()
     return g_cache
+
+def setCachePath(path):
+    cache = getCache()
+    if not cache:
+        return
+    cache.m_cachePath = path
+    cache.save()
 
 def save():
     cache = getCache()

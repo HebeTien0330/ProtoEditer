@@ -2,21 +2,31 @@
 :@Author: tangchengqin
 :@Date: 2025/1/8 17:16:40
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/11 16:21:25
+:@LastEditTime: 2025/1/11 17:18:28
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
-from PyQt5.QtWidgets import QTreeView, QFileSystemModel, QFileDialog, QMainWindow, QTextEdit
-from PyQt5.QtCore import QDir
+from PyQt5.QtWidgets import QTreeView, QFileSystemModel, QFileDialog, QMainWindow
+from PyQt5.QtCore import QDir, QModelIndex, Qt
 from PyQt5.QtGui import QDragEnterEvent, QDropEvent
 from components.event import installEventSystem
 from components.utils import getFileNameInPath
+
+class CustomFileSystemModel(QFileSystemModel):
+
+    def flags(self, index: QModelIndex):
+        flags = super().flags(index)
+        if flags & Qt.ItemIsEditable:
+            flags &= ~Qt.ItemIsEditable
+        return flags
+
 
 class FileSystem:
     
     def __init__(self, window: QMainWindow):
         self.m_window = window
-        self.m_model = QFileSystemModel()
+        self.m_model = CustomFileSystemModel()
+        self.m_model.setReadOnly(True)
         self.m_treeView = QTreeView()
         self.m_treeView.setModel(self.m_model)
         self.m_treeView.setRootIndex(self.m_model.index(QDir.rootPath()))
@@ -34,6 +44,8 @@ class FileSystem:
         installEventSystem(self)
         self.listen("onOpenFile", self.onOpenFile)
 
+        self.m_treeView.doubleClicked.connect(self.onFileDoubleClicked)
+
     def update(self, path):
         self.m_model.setRootPath(path)
         self.m_treeView.setRootIndex(self.m_model.index(path))
@@ -43,6 +55,12 @@ class FileSystem:
         if not folderPath:
             return
         self.update(folderPath)
+
+    def onFileDoubleClicked(self, index: QModelIndex):
+        filePath = self.m_model.filePath(index)
+        if QDir(filePath).exists():  # 确保是文件而不是文件夹
+            return
+        self.displayFile(filePath)
 
     def dragEnterEvent(self, event: QDragEnterEvent):
         if not event.mimeData().hasUrls():
