@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/8 17:16:40
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/11 12:28:11
+:@LastEditTime: 2025/1/11 16:21:25
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import QTreeView, QFileSystemModel, QFileDialog, QMainWindo
 from PyQt5.QtCore import QDir
 from PyQt5.QtGui import QDragEnterEvent, QDropEvent
 from components.event import installEventSystem
+from components.utils import getFileNameInPath
 
 class FileSystem:
     
@@ -38,10 +39,10 @@ class FileSystem:
         self.m_treeView.setRootIndex(self.m_model.index(path))
 
     def onOpenFile(self):
-        folder_path = QFileDialog.getExistingDirectory(self.m_window, "打开文件夹", "")
-        if not folder_path:
+        folderPath = QFileDialog.getExistingDirectory(self.m_window, "打开文件夹", "")
+        if not folderPath:
             return
-        self.update(folder_path)
+        self.update(folderPath)
 
     def dragEnterEvent(self, event: QDragEnterEvent):
         if not event.mimeData().hasUrls():
@@ -52,16 +53,17 @@ class FileSystem:
         urls = event.mimeData().urls()
         if not urls:
             return
-        file_path = urls[0].toLocalFile()
-        if QDir(file_path).exists():
-            self.update(file_path)
+        filePath = urls[0].toLocalFile()
+        if QDir(filePath).exists():
+            self.update(filePath)
         else:
-            self.displayFile(file_path)
+            self.displayFile(filePath)
 
-    def displayFile(self, file_path):
+    def displayFile(self, filePath):
         viewMgr = self.m_window.getViewsManager()
         if not viewMgr:
             return
-        with open(file_path, 'r') as file:
+        with open(filePath, 'r') as file:
             content = file.read()
-            viewMgr.createView(file_path, content)
+            viewMgr.createView(filePath, content)
+            viewMgr.switchView(getFileNameInPath(filePath))

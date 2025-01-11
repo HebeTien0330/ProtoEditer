@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/8 16:39:30
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/8 16:39:30
+:@LastEditTime: 2025/1/11 15:28:31
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -85,6 +85,15 @@ class MainWindow(QMainWindow):
         # 设置组件比例
         totalSize = self.size().width()
         self.m_splitter.setSizes([int(totalSize * 0.2), int(totalSize * 0.5), int(totalSize * 0.3)])
+
+    def replaceMainContent(self, widget):
+        layoutCnt = self.mainLayout.count()
+        if layoutCnt > 1:
+            old_widget = self.mainLayout.itemAt(1).widget()
+            self.mainLayout.removeWidget(old_widget)
+            old_widget.setParent(None)
+        self.mainLayout.insertWidget(1, widget)
+        self.mainContent = widget
 
 
 if __name__ == "__main__":
