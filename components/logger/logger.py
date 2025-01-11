@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/10 16:49:11
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/10 17:10:10
+:@LastEditTime: 2025/1/11 17:37:25
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -17,6 +17,7 @@ class Logger:
     def __init__(self):
         self.m_fileHandles = {}
         self.m_path = "../log/"
+        self.m_maxFiles = 10
         self.init()
 
     def __new__(cls, *args, **kwargs):
@@ -26,11 +27,10 @@ class Logger:
         return cls.__isinstance
 
     def __del__(self):
-        for file_handle in self.file_handles.values():
-            file_handle.close()
+        for fileHandle in self.m_fileHandles.values():
+            fileHandle.close()
 
     def init(self):
-        print(self.m_path, os.path.exists(self.m_path))
         if os.path.exists(self.m_path):
             return
         os.makedirs(self.m_path)
@@ -42,7 +42,7 @@ class Logger:
     def logfile(self, src, text):
         logout = f"[{datetime.datetime.now()}]: {text}\n"
         if src not in self.m_fileHandles:
-            if len(self.m_fileHandles) >= self.max_files:
+            if len(self.m_fileHandles) >= self.m_maxFiles:
                 oldest_src = next(iter(self.m_fileHandles))
                 oldest_file_handle = self.m_fileHandles.pop(oldest_src)
                 oldest_file_handle.close()
@@ -51,6 +51,7 @@ class Logger:
             self.m_fileHandles[src] = self.m_fileHandles.pop(src)
         
         self.m_fileHandles[src].write(logout)
+        self.m_fileHandles[src].flush()
         print(logout, end="")
 
 
@@ -59,8 +60,9 @@ if "g_Logger" not in globals():
     g_Logger = Logger()
 
 def getLogger():
+    global g_Logger
     if "g_Logger" not in globals():
-        global g_cache
+        global g_Logger
         g_Logger = Logger()
     return g_Logger
 
@@ -69,3 +71,10 @@ def logfile(src, text):
     if not logger:
         return
     logger.logfile(src, text)
+
+def setLogPath(path):
+    logger = getLogger()
+    if not logger:
+        return
+    logger.setLogPath(path)
+    logfile("logger", f"set log path to {path}")

@@ -2,13 +2,14 @@
 :@Author: tangchengqin
 :@Date: 2025/1/11 17:00:15
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/11 17:28:40
+:@LastEditTime: 2025/1/11 17:31:44
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit
 from PyQt5.QtWidgets import QPushButton, QFileDialog, QDialogButtonBox, QApplication
-from PyQt5.QtCore import Qt
+from components.cache import setCachePath
+from components.logger import setLogPath
 import os
 
 class NewProjectDialog(QDialog):
@@ -110,3 +111,15 @@ class NewProjectDialog(QDialog):
 
     def getLogPath(self):
         return self.m_logPathEditer.text()
+
+    def accept(self):
+        projectName = self.getProjectName()
+        savePath = self.getSavePath()
+        logPath = self.getLogPath()
+        if not projectName or not savePath or not logPath:
+            return
+        if not projectName.endswith(".pkl"):
+            projectName += ".pkl"
+        setLogPath(logPath)
+        setCachePath(f"{savePath}\\{projectName}")
+        self.done(QDialog.Accepted)
