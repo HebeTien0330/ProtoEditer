@@ -9,6 +9,7 @@
 from PyQt5.QtWidgets import QMainWindow, QGraphicsScene, QGraphicsView, QWidget, QGraphicsRectItem, QVBoxLayout
 
 class GraphPage:
+
     def __init__(self, window: QMainWindow):
         self.m_window = window
         self.m_tab = QWidget()
@@ -26,7 +27,6 @@ class GraphPage:
         self.m_tab = QWidget()
         layout = QVBoxLayout(self.m_tab)
         layout.addWidget(self.m_view)
-
 
     def update(self, content):
         pass
