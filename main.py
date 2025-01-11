@@ -12,6 +12,7 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout
 from components.event import installEventSystem
 from src.menuBar import ManuBarManager
 from src.fileSystem import FileSystem
+from src.viewSystem import ViewsManager
 
 class MainWindow(QMainWindow):
 
@@ -30,16 +31,18 @@ class MainWindow(QMainWindow):
         self.m_manuBarManager = ManuBarManager(self)
         self.createMenuBar()
 
-        # 创建文件系统
-        splitter = QSplitter()
-        self.m_fileSystem = FileSystem(self)
-        splitter.addWidget(self.m_fileSystem.m_treeView)
-        splitter.addWidget(self.mainContent)
-        self.setCentralWidget(splitter)
+        #创建展示界面
+        self.m_viewsManager = ViewsManager(self)
 
-        # 设置拉伸因子，使文件系统组件的宽度较小
-        splitter.setStretchFactor(0, 1)  # 文件系统组件
-        splitter.setStretchFactor(1, 50)  # 主窗口内容
+        # 创建文件系统
+        self.m_splitter = QSplitter()
+        self.m_fileSystem = FileSystem(self)
+        self.m_splitter.addWidget(self.m_fileSystem.m_treeView)
+        self.m_splitter.addWidget(self.mainContent)
+        self.setCentralWidget(self.m_splitter)
+
+        totalSize = self.size().width()
+        self.m_splitter.setSizes([int(totalSize * 0.2), int(totalSize * 0.8)])
 
         installEventSystem(self)
 
@@ -71,6 +74,17 @@ class MainWindow(QMainWindow):
 
     def saveFile(self):
         QMessageBox.information(self, "保存(S)", "保存文件")
+
+    def getViewsManager(self):
+        return self.m_viewsManager
+
+    def getSplitter(self):
+        return self.m_splitter
+
+    def update(self):
+        # 设置组件比例
+        totalSize = self.size().width()
+        self.m_splitter.setSizes([int(totalSize * 0.2), int(totalSize * 0.5), int(totalSize * 0.3)])
 
 
 if __name__ == "__main__":
