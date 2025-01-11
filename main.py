@@ -2,11 +2,10 @@
 :@Author: tangchengqin
 :@Date: 2025/1/8 16:39:30
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/11 17:00:28
+:@LastEditTime: 2025/1/11 17:09:06
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
-import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QSplitter
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QDialogButtonBox
 from components.event import installEventSystem
@@ -14,6 +13,7 @@ from src.menuBar import ManuBarManager
 from src.fileSystem import FileSystem
 from src.viewSystem import ViewsManager
 from src.newProject import NewProjectDialog
+import sys
 
 class MainWindow(QMainWindow):
 
@@ -69,24 +69,25 @@ class MainWindow(QMainWindow):
 
     def newFile(self):
         dialog = NewProjectDialog(self)
-        if dialog.exec_() == QDialogButtonBox.Ok:
-            projectName = dialog.getProjectName()
-            savePath = dialog.getSavePath()
-            logPath = dialog.getLogPath()
+        if dialog.exec_() != QDialogButtonBox.Ok:
+            return
+        projectName = dialog.getProjectName()
+        savePath = dialog.getSavePath()
+        logPath = dialog.getLogPath()
 
-            # 验证输入
-            if not projectName:
-                QMessageBox.warning(self, "警告", "项目名称不能为空")
-                return
-            if not savePath:
-                QMessageBox.warning(self, "警告", "保存路径不能为空")
-                return
-            if not logPath:
-                QMessageBox.warning(self, "警告", "日志路径不能为空")
-                return
+        # 验证输入
+        if not projectName:
+            QMessageBox.warning(self, "警告", "项目名称不能为空")
+            return
+        if not savePath:
+            QMessageBox.warning(self, "警告", "保存路径不能为空")
+            return
+        if not logPath:
+            QMessageBox.warning(self, "警告", "日志路径不能为空")
+            return
 
-            # 处理新建项目逻辑
-            self.createProject(projectName, savePath, logPath)
+        # 处理新建项目逻辑
+        self.createProject(projectName, savePath, logPath)
 
     def openFile(self):
         self.onEvent("onOpenFile")
