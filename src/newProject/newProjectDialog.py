@@ -2,12 +2,13 @@
 :@Author: tangchengqin
 :@Date: 2025/1/11 17:00:15
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/11 17:00:15
+:@LastEditTime: 2025/1/11 17:28:40
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit
 from PyQt5.QtWidgets import QPushButton, QFileDialog, QDialogButtonBox, QApplication
+from PyQt5.QtCore import Qt
 import os
 
 class NewProjectDialog(QDialog):
@@ -25,6 +26,7 @@ class NewProjectDialog(QDialog):
         self.setupProjectName()
         self.setupSavePath()
         self.setupLogPath()
+        self.setupConfirm()
 
     def setupProjectName(self):
         self.m_ProjectName = QLabel("项目名称:")
@@ -44,7 +46,7 @@ class NewProjectDialog(QDialog):
         self.m_savePathLayout.addWidget(self.m_btnBrowseSave)
         self.m_layout.addLayout(self.m_savePathLayout)
         # 设置默认保存路径
-        defaultSavePath = os.path.abspath("../cachefiles")
+        defaultSavePath = os.path.abspath("./cachefiles")
         self.m_savePathEditer.setText(defaultSavePath)
 
     def setupLogPath(self):
@@ -66,7 +68,21 @@ class NewProjectDialog(QDialog):
         self.m_btnBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         self.m_btnBox.accepted.connect(self.accept)
         self.m_btnBox.rejected.connect(self.reject)
-        self.m_layout.addWidget(self.m_btnBox)
+
+        # 创建一个水平布局来放置按钮框
+        btnLayout = QHBoxLayout()
+
+        # 获取按钮框中的按钮
+        ok_button = self.m_btnBox.button(QDialogButtonBox.Ok)
+        cancel_button = self.m_btnBox.button(QDialogButtonBox.Cancel)
+
+        # 创建一个水平布局来放置按钮和间距
+        btnLayout.addWidget(ok_button)
+        btnLayout.addSpacing(30)  # 添加固定间距
+        btnLayout.addWidget(cancel_button)
+
+        # 将水平布局添加到主布局中
+        self.m_layout.addLayout(btnLayout)
 
     def centerOnScreen(self):
         screen_geometry = QApplication.desktop().screenGeometry()
