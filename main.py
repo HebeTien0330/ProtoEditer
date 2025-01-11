@@ -2,17 +2,18 @@
 :@Author: tangchengqin
 :@Date: 2025/1/8 16:39:30
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/11 15:28:31
+:@LastEditTime: 2025/1/11 17:00:28
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QSplitter
-from PyQt5.QtWidgets import QWidget, QVBoxLayout
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QDialogButtonBox
 from components.event import installEventSystem
 from src.menuBar import ManuBarManager
 from src.fileSystem import FileSystem
 from src.viewSystem import ViewsManager
+from src.newProject import NewProjectDialog
 
 class MainWindow(QMainWindow):
 
@@ -67,7 +68,25 @@ class MainWindow(QMainWindow):
         self.m_manuBarManager.addMenu('首选项(P)', '设置')
 
     def newFile(self):
-        QMessageBox.information(self, "新建(N)", "新建文件")
+        dialog = NewProjectDialog(self)
+        if dialog.exec_() == QDialogButtonBox.Ok:
+            project_name = dialog.getProjectName()
+            save_path = dialog.getSavePath()
+            log_path = dialog.getLogPath()
+
+            # 验证输入
+            if not project_name:
+                QMessageBox.warning(self, "警告", "项目名称不能为空")
+                return
+            if not save_path:
+                QMessageBox.warning(self, "警告", "保存路径不能为空")
+                return
+            if not log_path:
+                QMessageBox.warning(self, "警告", "日志路径不能为空")
+                return
+
+            # 处理新建项目逻辑
+            self.createProject(project_name, save_path, log_path)
 
     def openFile(self):
         self.onEvent("onOpenFile")
