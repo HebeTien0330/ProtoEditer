@@ -2,12 +2,12 @@
 :@Author: tangchengqin
 :@Date: 2025/1/11 12:18:58
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/11 16:26:36
+:@LastEditTime: 2025/1/11 16:30:25
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
 
-from PyQt5.QtWidgets import QMainWindow, QTabWidget, QWidget
+from PyQt5.QtWidgets import QMainWindow, QTabWidget
 from components.utils import getFileNameInPath
 from .viewPage import ViewPage
 from .graphPage import GraphPage
@@ -36,8 +36,9 @@ class ViewsManager:
         self.m_pathMap[fileName] = path
         self.m_window.replaceMainContent(self.m_tabs)
 
-    def updateView(self, path, content):
-        pass
+    def updateView(self, path):
+        content = self.getCurrentTabContent(path)
+        self.m_viewPage.update(content)
 
     def switchView(self, fileName):
         index = list(self.m_pathMap.keys()).index(fileName)
@@ -48,13 +49,9 @@ class ViewsManager:
         if fileName not in self.m_graphMap:
             return
         path = self.m_pathMap.get(fileName)
-        content = self.getCurrentTabContent(path)
-        self.m_viewPage.update(content)
+        self.updateView(path)
 
     def getCurrentTabContent(self, path):
-        try:
-            with open(path, 'r', encoding='utf-8') as file:
-                content = file.read()
-            return content
-        except Exception as e:
-            return f"Error reading {path}: {str(e)}"
+        with open(path, 'r', encoding='utf-8') as file:
+            content = file.read()
+        return content
