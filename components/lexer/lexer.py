@@ -29,7 +29,7 @@ class ProtoLexer(RegexLexer):
             (r'([a-zA-Z_]\w*)\s*=', bygroups(Name.Variable, Operator)),
             (r'([a-zA-Z_]\w*)\s*{', bygroups(Name.Class, Punctuation)),
             (r'}', Punctuation),
-            (r'[0-9]+', Number.Integer),
+            (r'\b[0-9]+\b', Number.Integer),
             (r'"(\\\\|\\"|[^"])*"', String),
             (r"'(\\\\|\\'|[^'])*'", String),
             (r'[;,.]', Punctuation),
