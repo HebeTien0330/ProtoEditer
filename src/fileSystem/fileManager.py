@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/8 17:16:40
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/11 17:18:28
+:@LastEditTime: 2025/1/13 19:55:26
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -13,6 +13,11 @@ from components.event import installEventSystem
 from components.utils import getFileNameInPath
 
 class CustomFileSystemModel(QFileSystemModel):
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setNameFilters(["*.proto"])        # 只显示proto文件
+        self.setNameFilterDisables(False)
 
     def flags(self, index: QModelIndex):
         flags = super().flags(index)
@@ -32,6 +37,9 @@ class FileSystem:
         self.m_treeView.setRootIndex(self.m_model.index(QDir.rootPath()))
         self.m_treeView.setColumnWidth(0, 250)
         self.m_window.setCentralWidget(self.m_treeView)
+
+        for col in range(1, self.m_model.columnCount()):      # 隐藏所有列，只显示文件名
+            self.m_treeView.setColumnHidden(col, True)
 
         self.m_treeView.setAcceptDrops(True)
         self.m_treeView.setDragEnabled(True)
