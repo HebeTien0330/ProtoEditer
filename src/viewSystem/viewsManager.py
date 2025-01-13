@@ -7,7 +7,7 @@
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
 
-from PyQt5.QtWidgets import QMainWindow, QTabWidget, QTabBar, QPushButton
+from PyQt5.QtWidgets import QMainWindow, QTabWidget, QTabBar
 from PyQt5.QtCore import Qt, pyqtSignal
 from components.utils import getFileNameInPath
 from .viewPage import ViewPage
