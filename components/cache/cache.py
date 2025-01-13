@@ -56,7 +56,7 @@ class Cache:
     def package(self, target):
         return pickle.dumps(target)
 
-    def unpackage(self, target):
+    def unpack(self, target):
         return pickle.loads(target)
 
 
@@ -101,8 +101,8 @@ def package(target):
         return
     return cache.package(target)
 
-def unpackage(target):
+def unpack(target):
     cache = getCache()
     if not cache:
         return
-    return cache.unpackage(target)
+    return cache.unpack(target)
