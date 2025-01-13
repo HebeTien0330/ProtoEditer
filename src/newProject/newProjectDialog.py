@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/11 17:00:15
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/11 17:31:44
+:@LastEditTime: 2025/1/13 20:26:57
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -34,7 +34,7 @@ class NewProjectDialog(QDialog):
         self.m_layout.addWidget(self.m_ProjectName)
         self.m_projectNameEditer = QLineEdit()
         self.m_layout.addWidget(self.m_projectNameEditer)
-        self.m_projectNameEditer.setText("NewProject.pkl")
+        self.m_projectNameEditer.setText("NewProject.cache")
 
     def setupSavePath(self):
         self.m_savePath = QLabel("保存路径:")
@@ -118,8 +118,8 @@ class NewProjectDialog(QDialog):
         logPath = self.getLogPath()
         if not projectName or not savePath or not logPath:
             return
-        if not projectName.endswith(".pkl"):
-            projectName += ".pkl"
+        if not projectName.endswith(".cache"):
+            projectName += ".cache"
         setLogPath(logPath)
         setCachePath(f"{savePath}\\{projectName}")
         self.done(QDialog.Accepted)

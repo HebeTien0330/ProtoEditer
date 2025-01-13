@@ -2,17 +2,19 @@
 :@Author: tangchengqin
 :@Date: 2025/1/8 16:39:30
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/11 17:09:06
+:@LastEditTime: 2025/1/13 20:25:56
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QSplitter
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QDialogButtonBox
+from PyQt5.QtCore import Qt
 from components.event import installEventSystem
 from src.menuBar import ManuBarManager
 from src.fileSystem import FileSystem
 from src.viewSystem import ViewsManager
 from src.newProject import NewProjectDialog
+from components.cache import update, save, package
 import sys
 
 class MainWindow(QMainWindow):
@@ -46,6 +48,16 @@ class MainWindow(QMainWindow):
         self.m_splitter.setSizes([int(totalSize * 0.2), int(totalSize * 0.8)])
 
         installEventSystem(self)
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_S and event.modifiers() == Qt.ControlModifier:
+            self.save()
+        else:
+            super().keyPressEvent(event)
+
+    def save(self):
+        self.onEvent("onSave")
+        print("all save!")
 
     def centerOnScreen(self):
         screen_geometry = QApplication.desktop().screenGeometry()
