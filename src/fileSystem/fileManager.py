@@ -11,7 +11,7 @@ from PyQt5.QtCore import QDir, QModelIndex, Qt
 from PyQt5.QtGui import QDragEnterEvent, QDropEvent
 from components.event import installEventSystem
 from components.utils import getFileNameInPath
-from components.cache import package, save, update, query, unpackage
+from components.cache import package, save, update, query, unpack
 
 class CustomFileSystemModel(QFileSystemModel):
 
@@ -67,7 +67,7 @@ class FileSystem:
         saveObj = query("fileSystem")
         if not saveObj:
             return {}
-        return unpackage(saveObj)
+        return unpack(saveObj)
 
     def update(self, path):
         self.m_model.setRootPath(path)
