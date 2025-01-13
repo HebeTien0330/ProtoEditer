@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/8 17:16:40
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/13 19:55:26
+:@LastEditTime: 2025/1/13 20:22:16
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -11,6 +11,7 @@ from PyQt5.QtCore import QDir, QModelIndex, Qt
 from PyQt5.QtGui import QDragEnterEvent, QDropEvent
 from components.event import installEventSystem
 from components.utils import getFileNameInPath
+from components.cache import package, save, update, query, unpackage
 
 class CustomFileSystemModel(QFileSystemModel):
 
@@ -29,6 +30,7 @@ class CustomFileSystemModel(QFileSystemModel):
 class FileSystem:
     
     def __init__(self, window: QMainWindow):
+        self.m_data = self.load()        # 文件系统数据
         self.m_window = window
         self.m_model = CustomFileSystemModel()
         self.m_model.setReadOnly(True)
@@ -50,13 +52,34 @@ class FileSystem:
         self.m_treeView.dropEvent = self.dropEvent
 
         installEventSystem(self)
+        self.listen("onSave", self.save)
         self.listen("onOpenFile", self.onOpenFile)
 
         self.m_treeView.doubleClicked.connect(self.onFileDoubleClicked)
+        self.afterInit()
+
+    def save(self):
+        update("fileSystem", package(self.m_data))
+        save()
+        print("save file system")
+
+    def load(self):
+        saveObj = query("fileSystem")
+        if not saveObj:
+            return {}
+        return unpackage(saveObj)
 
     def update(self, path):
         self.m_model.setRootPath(path)
         self.m_treeView.setRootIndex(self.m_model.index(path))
+        self.m_data["path"] = path
+        self.save()
+
+    def afterInit(self):
+        path = self.m_data.get("path")
+        if not path:
+            return
+        self.update(path)
 
     def onOpenFile(self):
         folderPath = QFileDialog.getExistingDirectory(self.m_window, "打开文件夹", "")

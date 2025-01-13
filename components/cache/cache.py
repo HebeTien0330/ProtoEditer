@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/10 16:41:49
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/11 17:35:46
+:@LastEditTime: 2025/1/13 20:20:04
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -15,7 +15,8 @@ class Cache:
     def __init__(self):
         self.m_data = {}
         self.m_dirty = 0        # 脏标记
-        self.m_cachePath = None
+        self.m_cachePath = f"{os.path.abspath('./cachefiles')}/default.cache"
+        self.load()
 
     def __setattr__(self, key, value):
         self.__dict__[key] = value
@@ -45,11 +46,18 @@ class Cache:
         logfile("cache", "save cache end!")
 
     def update(self, key, value):
+        logfile("cache", f"update cache: key -> {key}, value -> {value}")
         self.m_data[key] = value
         self.m_dirty = 1
 
     def query(self, key):
         return self.m_data.get(key)
+
+    def package(self, target):
+        return pickle.dumps(target)
+
+    def unpackage(self, target):
+        return pickle.loads(target)
 
 
 if "g_cache" not in globals():
@@ -86,3 +94,15 @@ def query(key):
     if not cache:
         return
     return cache.query(key)
+
+def package(target):
+    cache = getCache()
+    if not cache:
+        return
+    return cache.package(target)
+
+def unpackage(target):
+    cache = getCache()
+    if not cache:
+        return
+    return cache.unpackage(target)
