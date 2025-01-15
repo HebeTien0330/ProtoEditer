@@ -165,6 +165,8 @@ class GraphPage:
             return QColor(255, 173, 173)  # 浅红色
         if fieldType == "bytes":
             return QColor(200, 200, 200)  # 浅灰色
+        if fieldType == "map":
+            return QColor(255, 255, 173)  # 浅黄色
         return QColor(200, 200, 200)  # 默认浅灰色
 
     def createLine(self, start, end):
