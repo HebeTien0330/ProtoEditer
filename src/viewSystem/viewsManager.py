@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/11 12:18:58
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/11 16:30:25
+:@LastEditTime: 2025/1/15 10:19:32
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -10,6 +10,7 @@
 from PyQt5.QtWidgets import QMainWindow, QTabWidget, QTabBar
 from PyQt5.QtCore import Qt, pyqtSignal
 from components.utils import getFileNameInPath
+from components.parser import getParser
 from .viewPage import ViewPage
 from .graphPage import GraphPage
 
@@ -53,9 +54,15 @@ class ViewsManager:
 
 
     def createView(self, path, content):
+        fileName = getFileNameInPath(path)
+        
+        # 检查文件是否已经打开
+        if fileName in self.m_graphMap:
+            self.switchView(fileName)
+            return
+
         graphPage = GraphPage(self.m_window)
         graphWidget = graphPage.m_tab
-        fileName = getFileNameInPath(path)
         index = self.m_tabs.addTab(graphWidget, fileName)
         self.m_tabs.setCurrentIndex(index)
 
@@ -63,13 +70,24 @@ class ViewsManager:
             self.m_viewPage = ViewPage(self.m_window)
         self.m_viewPage.update(content)
 
+        parser = getParser()
+        protos = parser.parser(path, content)
+        graphPage.update(protos)
+
         self.m_graphMap[fileName] = graphPage
         self.m_pathMap[fileName] = path
         self.m_window.replaceMainContent(self.m_tabs)
 
-    def updateView(self, path):
+    def updateView(self, fileName):
+        path = self.m_pathMap.get(fileName)
+        parser = getParser()
         content = self.getCurrentTabContent(path)
+        protos = parser.parser(path, content)
         self.m_viewPage.update(content)
+        graphPage = self.m_graphMap.get(fileName)
+        if not graphPage:
+            return
+        graphPage.update(protos)
 
     def switchView(self, fileName):
         index = list(self.m_pathMap.keys()).index(fileName)
@@ -79,8 +97,7 @@ class ViewsManager:
         fileName = self.m_tabs.tabText(index)
         if fileName not in self.m_graphMap:
             return
-        path = self.m_pathMap.get(fileName)
-        self.updateView(path)
+        self.updateView(fileName)
 
     def getCurrentTabContent(self, path):
         with open(path, 'r', encoding='utf-8') as file:

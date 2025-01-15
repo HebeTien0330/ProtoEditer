@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/13 20:39:58
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/13 20:55:11
+:@LastEditTime: 2025/1/15 10:23:01
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -49,7 +49,7 @@ class Parser:
         parts = re.findall('[A-Z][^A-Z]*', target)
         return parts
 
-    def canPass(line):
+    def canPass(self, line):
         if not line or line == "":
             return True
         if line.startswith("//"):
@@ -67,7 +67,7 @@ class Parser:
     def parser(self, fileName, context):
         curProto = None
         protoData = self.m_protos.get(fileName, {})
-        for line in context:
+        for line in context.splitlines():
             line = line.strip().strip(";")      # 先删除字符串两端的影响
             if self.canPass(line):
                 continue
@@ -94,6 +94,13 @@ class Parser:
             keyType, key, _, no = line.split(" ")
             protoData[curProto][key] = { "type": keyType, "no": int(no), "isRepeated": False }
         self.m_protos[fileName] = protoData
+        return protoData
+
+    def getProtos(self):
+        return self.m_protos
+    def getProto(self, fileName, key):
+        protoData = self.m_protos.get(fileName, {})
+        return protoData.get(key, {})
 
 
 if "g_Parser" not in globals():
