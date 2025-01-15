@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/8 16:39:30
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/13 20:25:56
+:@LastEditTime: 2025/1/15 17:56:01
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -34,9 +34,6 @@ class MainWindow(QMainWindow):
         self.m_manuBarManager = ManuBarManager(self)
         self.createMenuBar()
 
-        #创建展示界面
-        self.m_viewsManager = ViewsManager(self)
-
         # 创建文件系统
         self.m_splitter = QSplitter()
         self.m_fileSystem = FileSystem(self)
@@ -46,6 +43,9 @@ class MainWindow(QMainWindow):
 
         totalSize = self.size().width()
         self.m_splitter.setSizes([int(totalSize * 0.2), int(totalSize * 0.8)])
+
+        #创建展示界面
+        self.m_viewsManager = ViewsManager(self)
 
         installEventSystem(self)
 
@@ -58,6 +58,18 @@ class MainWindow(QMainWindow):
     def save(self):
         self.onEvent("onSave")
         print("all save!")
+
+    def closeEvent(self, event):
+        reply = QMessageBox.question(self, 
+                                     'Message', "Are you sure to quit?", 
+                                     QMessageBox.Yes | QMessageBox.No, 
+                                     QMessageBox.No
+                                    )
+        if reply == QMessageBox.Yes:
+            self.onEvent("onSave")
+            event.accept()
+        else:
+            event.ignore()
 
     def centerOnScreen(self):
         screen_geometry = QApplication.desktop().screenGeometry()

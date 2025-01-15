@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/10 16:41:49
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/13 20:20:04
+:@LastEditTime: 2025/1/15 17:56:11
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -46,7 +46,7 @@ class Cache:
         logfile("cache", "save cache end!")
 
     def update(self, key, value):
-        logfile("cache", f"update cache: key -> {key}, value -> {value}")
+        logfile("cache", f"update cache: key -> {key}")
         self.m_data[key] = value
         self.m_dirty = 1
 
