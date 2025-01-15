@@ -2,12 +2,12 @@
 :@Author: tangchengqin
 :@Date: 2025/1/11 15:04:18
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/15 17:09:30
+:@LastEditTime: 2025/1/15 17:32:25
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
 
-from PyQt5.QtWidgets import QMainWindow, QGraphicsScene, QGraphicsView, QWidget
+from PyQt5.QtWidgets import QMainWindow, QGraphicsScene, QGraphicsView, QWidget, QGraphicsDropShadowEffect
 from PyQt5.QtWidgets import QGraphicsRectItem, QVBoxLayout, QGraphicsTextItem, QGraphicsLineItem
 from PyQt5.QtGui import QPen, QBrush, QColor, QWheelEvent
 from PyQt5.QtCore import Qt
@@ -23,13 +23,17 @@ class CustomGraphicsView(QGraphicsView):
         return zoomFactor
 
     def wheelEvent(self, event: QWheelEvent):
-        if not event.modifiers() & Qt.ControlModifier:
+        if event.modifiers() & Qt.ControlModifier:
+            zoomFactor = self.calcZoomFactor(event)
+            self.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
+            self.setResizeAnchor(QGraphicsView.AnchorUnderMouse)
+            self.scale(zoomFactor, zoomFactor)
+        elif event.modifiers() & Qt.ShiftModifier:
+            # 按住 Shift 键进行横向滚动
+            delta = event.angleDelta().y()
+            self.horizontalScrollBar().setValue(self.horizontalScrollBar().value() - delta)
+        else:
             super().wheelEvent(event)
-            return
-        zoomFactor = self.calcZoomFactor(event)
-        self.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
-        self.setResizeAnchor(QGraphicsView.AnchorUnderMouse)
-        self.scale(zoomFactor, zoomFactor)
 
 
 class GraphPage:
@@ -83,7 +87,14 @@ class GraphPage:
         rect = QGraphicsRectItem(x, y, totalWidth, totalHeight)
         rect.setBrush(QBrush(color))
         rect.setPen(QPen(Qt.black))
-        rect.setFlag(QGraphicsRectItem.ItemIsMovable)
+        rect.setFlag(QGraphicsRectItem.ItemIsMovable, False)
+
+        # 添加阴影效果
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(8)  # 设置模糊半径
+        shadow.setColor(QColor(0, 0, 0, 128))  # 设置阴影颜色和透明度
+        shadow.setOffset(4, 4)  # 设置阴影偏移量
+        rect.setGraphicsEffect(shadow)
 
         indexText.setPos(x + 10, y + (totalHeight - indexHeight) / 2)
         typeText.setPos(x + indexWidth + 20, y + (totalHeight - typeHeight) / 2)

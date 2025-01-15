@@ -11,6 +11,8 @@ from PyQt5.QtWidgets import QMainWindow, QTabWidget, QTabBar
 from PyQt5.QtCore import Qt, pyqtSignal
 from components.utils import getFileNameInPath
 from components.parser import getParser
+from components.cache import package, save, update, query, unpack
+from components.event import installEventSystem
 from .viewPage import ViewPage
 from .graphPage import GraphPage
 
@@ -51,7 +53,26 @@ class ViewsManager:
         customTabBar.closeRequested.connect(self.onTabClose)
         self.m_tabs.currentChanged.connect(self.onTabChanged)
         self.m_customTabBar = customTabBar
+        installEventSystem(self)
+        self.listen("onSave", self.save)
+        self.load()
 
+    def save(self):
+        tabsInfo = []
+        for fileName, path in self.m_pathMap.items():
+            content = self.getCurrentTabContent(path)
+            tabsInfo.append({'fileName': fileName, 'path': path, 'content': content})
+        update("tabsInfo", package(tabsInfo))
+        save()
+        print("save file system")
+
+    def load(self):
+        saveObj = query("tabsInfo")
+        if not saveObj:
+            return
+        tabsInfo = unpack(saveObj)
+        for tab in tabsInfo:
+            self.createView(tab['path'], tab['content'])
 
     def createView(self, path, content):
         fileName = getFileNameInPath(path)
