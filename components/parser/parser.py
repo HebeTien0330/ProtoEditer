@@ -2,12 +2,13 @@
 :@Author: tangchengqin
 :@Date: 2025/1/13 20:39:58
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/15 10:23:01
+:@LastEditTime: 2025/1/16 17:19:18
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
 from components.cache import package, unpack, save, update, query
 from components.event import installEventSystem
+from .protoWriter import ProtoWriter
 import re
 
 class Parser:
@@ -23,9 +24,12 @@ class Parser:
     def __init__(self):
         self.m_index = 1001
         self.m_protos = {}
+        self.protoWriter = ProtoWriter()
         self.load()
         installEventSystem(self)
         self.listen("save", self.save)
+        self.listen("onChangeProto", self.onChangeProto)
+        self.listen("onEditProto", self.onEditProto)
 
     def save(self):
         data = {
@@ -94,6 +98,7 @@ class Parser:
             keyType, key, _, no = line.split(" ")
             protoData[curProto][key] = { "type": keyType, "no": int(no), "isRepeated": False }
         self.m_protos[fileName] = protoData
+        self.protoWriter.open(fileName, protoData)
         return protoData
 
     def getProtos(self):
@@ -101,6 +106,12 @@ class Parser:
     def getProto(self, fileName, key):
         protoData = self.m_protos.get(fileName, {})
         return protoData.get(key, {})
+
+    def onChangeProto(self, delta):
+        self.protoWriter.update(delta)
+
+    def onEditProto(self, delta):
+        self.protoWriter.edit(delta)
 
 
 if "g_Parser" not in globals():

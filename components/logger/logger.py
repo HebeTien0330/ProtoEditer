@@ -2,11 +2,11 @@
 :@Author: tangchengqin
 :@Date: 2025/1/10 16:49:11
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/11 17:37:25
+:@LastEditTime: 2025/1/16 12:19:59
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
-
+from components.event import installEventSystem
 import os
 import datetime
 
@@ -34,6 +34,13 @@ class Logger:
         if os.path.exists(self.m_path):
             return
         os.makedirs(self.m_path)
+        installEventSystem(self)
+        self.listen("onSave", self.save)
+
+    def save(self):
+        for fileHandle in self.m_fileHandles.values():
+            fileHandle.close()
+        print("all log files close")
 
     def setLogPath(self, path):
         self.m_path = path

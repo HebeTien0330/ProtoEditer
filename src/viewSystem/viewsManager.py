@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/11 12:18:58
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/15 10:19:32
+:@LastEditTime: 2025/1/16 15:43:49
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -55,6 +55,7 @@ class ViewsManager:
         self.m_customTabBar = customTabBar
         installEventSystem(self)
         self.listen("onSave", self.save)
+        self.listen("onRefreshViews", self.refreshCurrentView)
         self.load()
 
     def save(self):
@@ -93,22 +94,22 @@ class ViewsManager:
 
         parser = getParser()
         protos = parser.parser(path, content)
-        graphPage.update(protos)
+        graphPage.update(fileName, protos)
 
         self.m_graphMap[fileName] = graphPage
         self.m_pathMap[fileName] = path
         self.m_window.replaceMainContent(self.m_tabs)
 
-    def updateView(self, fileName):
+    def updateView(self, fileName, mode="all"):
         path = self.m_pathMap.get(fileName)
         parser = getParser()
         content = self.getCurrentTabContent(path)
         protos = parser.parser(path, content)
         self.m_viewPage.update(content)
         graphPage = self.m_graphMap.get(fileName)
-        if not graphPage:
+        if not graphPage or mode != "all":
             return
-        graphPage.update(protos)
+        graphPage.update(fileName, protos)
 
     def switchView(self, fileName):
         index = list(self.m_pathMap.keys()).index(fileName)
@@ -130,3 +131,13 @@ class ViewsManager:
         if self.m_tabs.count() > 0:
             return
         self.m_viewPage.update("")
+
+    def refreshCurrentView(self, mode="all"):
+        currentIndex = self.m_tabs.currentIndex()
+        if currentIndex < 0:
+            return  # 没有选中的标签页
+        fileName = self.m_tabs.tabText(currentIndex)
+        path = self.m_pathMap.get(fileName)
+        if not path:
+            return  # 路径不存在
+        self.updateView(fileName, mode)
