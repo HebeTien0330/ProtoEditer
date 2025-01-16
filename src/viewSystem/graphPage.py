@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/11 15:04:18
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/16 19:54:54
+:@LastEditTime: 2025/1/16 20:05:19
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -41,7 +41,7 @@ class CustomGraphicsView(QGraphicsView):
 
     def contextMenuEvent(self, event):
         pos = self.mapToScene(event.pos())
-        if self.m_graphPage.canAddChildNode(pos):
+        if self.m_graphPage.canEditRootNode(pos):
             contextMenu = QMenu(self)
             addAction = contextMenu.addAction("Add Child Node")
             contextMenu.addSeparator()
@@ -51,16 +51,22 @@ class CustomGraphicsView(QGraphicsView):
                 self.showAddNodeDialog(pos)
             elif action == deleteAction:
                 self.showDeleteNodeDialog()
-        else:
+        elif self.m_graphPage.canEditChildNode(pos):
             contextMenu = QMenu(self)
-            addAction = contextMenu.addAction("Edit Child Node")
+            editAction = contextMenu.addAction("Edit Child Node")
             contextMenu.addSeparator()
             deleteAction = contextMenu.addAction("Delete Node")
             action = contextMenu.exec_(self.mapToGlobal(event.pos()))
-            if action == addAction:
+            if action == editAction:
                 self.showAddNodeDialog(pos)
             elif action == deleteAction:
                 self.showDeleteNodeDialog()
+        else:
+            contextMenu = QMenu(self)
+            newAction = contextMenu.addAction("New Root Node")
+            action = contextMenu.exec_(self.mapToGlobal(event.pos()))
+            if action == newAction:
+                self.showNewRootNodeDialog(pos)
 
     def showAddNodeDialog(self, pos):
         dialog = AddNodeDialog(self)
@@ -80,6 +86,10 @@ class CustomGraphicsView(QGraphicsView):
 
     def showDeleteNodeDialog(self, pos):
         pass
+
+    def showNewRootNodeDialog(self):
+        pass
+
 
 class GraphPage:
 
@@ -226,7 +236,7 @@ class GraphPage:
                 break
         return parentText
 
-    def canAddChildNode(self, pos):
+    def canEditRootNode(self, pos):
         parentRect = self.findRect(pos)
         if not parentRect:
             return False
@@ -234,6 +244,17 @@ class GraphPage:
         if not parentText:
             return False
         if not (parentText.startswith("C2S") or parentText.startswith("S2C")):
+            return False
+        return True
+    
+    def canEditChildNode(self, pos):
+        parentRect = self.findRect(pos)
+        if not parentRect:
+            return False
+        parentText = self.getParentNodeText(parentRect)
+        if not parentText:
+            return False
+        if parentText.startswith("C2S") or parentText.startswith("S2C"):
             return False
         return True
 
