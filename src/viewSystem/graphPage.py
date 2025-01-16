@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/11 15:04:18
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/16 17:39:37
+:@LastEditTime: 2025/1/16 19:54:54
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -44,17 +44,23 @@ class CustomGraphicsView(QGraphicsView):
         if self.m_graphPage.canAddChildNode(pos):
             contextMenu = QMenu(self)
             addAction = contextMenu.addAction("Add Child Node")
+            contextMenu.addSeparator()
+            deleteAction = contextMenu.addAction("Delete Root Node")
             action = contextMenu.exec_(self.mapToGlobal(event.pos()))
-            if action != addAction:
-                return
-            self.showAddNodeDialog(pos)
+            if action == addAction:
+                self.showAddNodeDialog(pos)
+            elif action == deleteAction:
+                self.showDeleteNodeDialog()
         else:
             contextMenu = QMenu(self)
             addAction = contextMenu.addAction("Edit Child Node")
+            contextMenu.addSeparator()
+            deleteAction = contextMenu.addAction("Delete Node")
             action = contextMenu.exec_(self.mapToGlobal(event.pos()))
-            if action != addAction:
-                return
-            self.showEditNodeDialog(pos)
+            if action == addAction:
+                self.showAddNodeDialog(pos)
+            elif action == deleteAction:
+                self.showDeleteNodeDialog()
 
     def showAddNodeDialog(self, pos):
         dialog = AddNodeDialog(self)
@@ -72,8 +78,11 @@ class CustomGraphicsView(QGraphicsView):
         nodeName = dialog.getNodeName()
         self.m_graphPage.editChildNode(pos, nodeType, nodeName)
 
+    def showDeleteNodeDialog(self, pos):
+        pass
 
 class GraphPage:
+
     def __init__(self, window: QMainWindow):
         self.m_window = window
         self.m_tab = QWidget()
