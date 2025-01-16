@@ -1,0 +1,40 @@
+'''
+:@Author: tangchengqin
+:@Date: 2025/1/16 15:22:26
+:@LastEditors: tangchengqin
+:@LastEditTime: 2025/1/16 15:22:26
+:Description: 
+:Copyright: Copyright (©) 2025 Clarify. All rights reserved.
+'''
+from PyQt5.QtWidgets import QDialog, QLabel, QComboBox, QLineEdit, QPushButton, QVBoxLayout
+
+
+class AddNodeDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Add Child Node")
+        self.layout = QVBoxLayout()
+        self.setMinimumSize(300, 200)
+        self.m_typeLabel = QLabel("Node Type:")
+        self.m_typeComboBox = QComboBox()
+        self.m_typeComboBox.addItems([
+            "newType", "double", "float", "int32", "int64", "uint32", "uint64", 
+            "sint32", "sint64", "fixed32", "fixed64", "sfixed32", "sfixed64", 
+            "bool", "string", "bytes", "map"
+        ])
+        self.m_nameLabel = QLabel("Node Name:")
+        self.m_nameLineEdit = QLineEdit()
+        self.m_btnSubmit = QPushButton("Submit")
+        self.m_btnSubmit.clicked.connect(self.accept)
+        self.layout.addWidget(self.m_typeLabel)
+        self.layout.addWidget(self.m_typeComboBox)
+        self.layout.addWidget(self.m_nameLabel)
+        self.layout.addWidget(self.m_nameLineEdit)
+        self.layout.addWidget(self.m_btnSubmit)
+        self.setLayout(self.layout)
+
+    def getNodeType(self):
+        return self.m_typeComboBox.currentText()
+
+    def getNodeName(self):
+        return self.m_nameLineEdit.text()

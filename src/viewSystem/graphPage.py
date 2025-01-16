@@ -2,19 +2,22 @@
 :@Author: tangchengqin
 :@Date: 2025/1/11 15:04:18
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/16 14:16:39
+:@LastEditTime: 2025/1/16 15:27:50
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
 
 from PyQt5.QtWidgets import QMainWindow, QGraphicsScene, QGraphicsView, QWidget, QGraphicsDropShadowEffect
-from PyQt5.QtWidgets import QGraphicsRectItem, QVBoxLayout, QGraphicsTextItem, QGraphicsLineItem
+from PyQt5.QtWidgets import QGraphicsRectItem, QVBoxLayout, QGraphicsTextItem, QGraphicsLineItem, QMenu, QDialog
 from PyQt5.QtGui import QPen, QBrush, QColor, QWheelEvent
 from PyQt5.QtCore import Qt, QRectF
+from .addNodeDialog import AddNodeDialog
+
 
 class CustomGraphicsView(QGraphicsView):
-    def __init__(self, scene):
+    def __init__(self, scene, graphPage):
         super().__init__(scene)
+        self.m_graphPage = graphPage
 
     def calcZoomFactor(self, event):
         zoomFactor = 1.25
@@ -35,20 +38,39 @@ class CustomGraphicsView(QGraphicsView):
         else:
             super().wheelEvent(event)
 
+    def contextMenuEvent(self, event):
+        pos = self.mapToScene(event.pos())
+        if not self.m_graphPage.canAddChildNode(pos):
+            return
+        contextMenu = QMenu(self)
+        addAction = contextMenu.addAction("Add Child Node")
+        action = contextMenu.exec_(self.mapToGlobal(event.pos()))
+        if action != addAction:
+            return
+        self.showAddNodeDialog(pos)
+
+    def showAddNodeDialog(self, pos):
+        dialog = AddNodeDialog(self)
+        if dialog.exec_() != QDialog.Accepted:
+            return
+        nodeType = dialog.getNodeType()
+        nodeName = dialog.getNodeName()
+        self.m_graphPage.addChildNode(pos, nodeType, nodeName)
+
 
 class GraphPage:
     def __init__(self, window: QMainWindow):
         self.m_window = window
         self.m_tab = QWidget()
         self.m_scene = QGraphicsScene()
-        self.m_view = CustomGraphicsView(self.m_scene)
+        self.m_view = CustomGraphicsView(self.m_scene, self)
         self.setup()
 
     def setup(self):
         self.m_tab = QWidget()
         layout = QVBoxLayout(self.m_tab)
         layout.addWidget(self.m_view)
-        self.m_scene.setSceneRect(-5000, -5000, 10000, 20000)       # TODO: 有办法自适应吗？
+        self.m_scene.setSceneRect(-5000, -5000, 10000, 20000)
         # 隐藏水平和垂直滚动条
         self.m_view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.m_view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -134,7 +156,6 @@ class GraphPage:
                 line = self.createLine(parent, (x + width, y + height / 2))
                 self.m_scene.addItem(line)
 
-            # self.createSubNode(x, y, width, msgData, msgRect)
             subX = x + width + 30
             subY = y
             index = 1
@@ -167,6 +188,57 @@ class GraphPage:
 
             subY = lastSubY + maxSubHeight + 50
             y = subY
+
+    def canAddChildNode(self, pos):
+        parentRect = self.findParentRect(pos)
+        if not parentRect:
+            return False
+        parentRectBounding = parentRect.sceneBoundingRect()
+        parentTextItems = self.m_scene.items(parentRectBounding)
+        parentText = None
+        for item in parentTextItems:
+            if isinstance(item, QGraphicsTextItem):
+                parentText = item.toPlainText()
+                break
+        if not parentText:
+            return False
+        if not (parentText.startswith("C2S") or parentText.startswith("S2C")):
+            return False
+        return True
+
+    def addChildNode(self, pos, nodeType="newType", nodeName="newField"):
+        parentRect = self.findParentRect(pos)
+        if not parentRect:
+            return
+        parentX = parentRect.rect().x()
+        parentY = parentRect.rect().y()
+        parentWidth = parentRect.rect().width()
+        parentHeight = parentRect.rect().height()
+
+        subX = parentX + parentWidth + 30
+        subY = parentY + parentHeight / 2
+
+        fieldType = nodeType
+        fieldName = nodeName
+        fieldColor = self.getFieldColor(fieldType)
+
+        subRect, subIndexText, subTypeText, subNameText = self.createRectWithText(subX, subY, "1", fieldType, fieldName, fieldColor)
+        self.m_scene.addItem(subRect)
+        self.m_scene.addItem(subIndexText)
+        self.m_scene.addItem(subTypeText)
+        self.m_scene.addItem(subNameText)
+
+        line = self.createLine((parentX + parentWidth, parentY + parentHeight / 2), (subX, subY))
+        self.m_scene.addItem(line)
+
+        self.updateSceneRect()
+
+    def findParentRect(self, pos):
+        items = self.m_scene.items(pos)
+        for item in items:
+            if isinstance(item, QGraphicsRectItem):
+                return item
+        return None
 
     def getFieldColor(self, fieldType):
         if fieldType in ["double", "float"]:
