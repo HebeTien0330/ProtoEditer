@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/11 15:04:18
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/16 15:46:27
+:@LastEditTime: 2025/1/16 17:39:37
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -13,7 +13,7 @@ from PyQt5.QtGui import QPen, QBrush, QColor, QWheelEvent
 from PyQt5.QtCore import Qt, QRectF
 from components.event import installEventSystem
 from .addNodeDialog import AddNodeDialog
-
+from .editNodeDialog import EditNodeDialog
 
 class CustomGraphicsView(QGraphicsView):
     def __init__(self, scene, graphPage):
@@ -41,14 +41,20 @@ class CustomGraphicsView(QGraphicsView):
 
     def contextMenuEvent(self, event):
         pos = self.mapToScene(event.pos())
-        if not self.m_graphPage.canAddChildNode(pos):
-            return
-        contextMenu = QMenu(self)
-        addAction = contextMenu.addAction("Add Child Node")
-        action = contextMenu.exec_(self.mapToGlobal(event.pos()))
-        if action != addAction:
-            return
-        self.showAddNodeDialog(pos)
+        if self.m_graphPage.canAddChildNode(pos):
+            contextMenu = QMenu(self)
+            addAction = contextMenu.addAction("Add Child Node")
+            action = contextMenu.exec_(self.mapToGlobal(event.pos()))
+            if action != addAction:
+                return
+            self.showAddNodeDialog(pos)
+        else:
+            contextMenu = QMenu(self)
+            addAction = contextMenu.addAction("Edit Child Node")
+            action = contextMenu.exec_(self.mapToGlobal(event.pos()))
+            if action != addAction:
+                return
+            self.showEditNodeDialog(pos)
 
     def showAddNodeDialog(self, pos):
         dialog = AddNodeDialog(self)
@@ -57,6 +63,14 @@ class CustomGraphicsView(QGraphicsView):
         nodeType = dialog.getNodeType()
         nodeName = dialog.getNodeName()
         self.m_graphPage.addChildNode(pos, nodeType, nodeName)
+
+    def showEditNodeDialog(self, pos):
+        dialog = EditNodeDialog(self)
+        if dialog.exec_() != QDialog.Accepted:
+            return
+        nodeType = dialog.getNodeType()
+        nodeName = dialog.getNodeName()
+        self.m_graphPage.editChildNode(pos, nodeType, nodeName)
 
 
 class GraphPage:
@@ -204,7 +218,7 @@ class GraphPage:
         return parentText
 
     def canAddChildNode(self, pos):
-        parentRect = self.findParentRect(pos)
+        parentRect = self.findRect(pos)
         if not parentRect:
             return False
         parentText = self.getParentNodeText(parentRect)
@@ -215,7 +229,7 @@ class GraphPage:
         return True
 
     def addChildNode(self, pos, nodeType="newType", nodeName="newField"):
-        parentRect = self.findParentRect(pos)
+        parentRect = self.findRect(pos)
         if not parentRect:
             return
         proto = self.getParentNodeText(parentRect)
@@ -227,12 +241,77 @@ class GraphPage:
         }
         self.onEvent("onChangeProto", None, delta)
 
-    def findParentRect(self, pos):
+    def findRect(self, pos):
         items = self.m_scene.items(pos)
         for item in items:
             if isinstance(item, QGraphicsRectItem):
                 return item
         return None
+
+    def findParentRect(self, rectItem):
+        rectBounding = rectItem.sceneBoundingRect()
+        for item in self.m_scene.items():
+            if not isinstance(item, QGraphicsLineItem):
+                continue
+            line = item.line()
+            # 检查线条的终点是否在矩形的边界内
+            if not rectBounding.contains(line.p2()):
+                continue
+            # 查找起点对应的矩形
+            startRect = self.findRect(line.p1())
+            if not startRect:
+                continue
+            return startRect
+        return None
+
+    def getChildNodeTextCom(self, rectItem):
+        rectBounding = rectItem.sceneBoundingRect()
+        textItems = self.m_scene.items(rectBounding)
+        indexText = None
+        typeText = None
+        nameText = None
+        for item in textItems:
+            if not isinstance(item, QGraphicsTextItem):
+                continue
+            if nameText is None:
+                nameText = item
+            elif typeText is None:
+                typeText = item
+            else:
+                indexText = item
+        return indexText, typeText, nameText
+
+    def editChildNode(self, pos, nodeType, nodeName):
+        rectItem = self.findRect(pos)
+        if not rectItem:
+            return
+        indexText, typeText, nameText = self.getChildNodeTextCom(rectItem)
+        if not indexText or not typeText or not nameText:
+            return
+        curIndex = indexText.toPlainText()
+        curField = nameText.toPlainText()
+        # 查找父节点
+        parentRect = self.findParentRect(rectItem)
+        if not parentRect:
+            return
+        parentText = self.getParentNodeText(parentRect)
+        if not parentText:
+            return
+        # 更新节点的类型和名称
+        typeText.setPlainText(nodeType)
+        nameText.setPlainText(nodeName)
+        # 如果节点类型发生变化，可能需要更新颜色
+        newColor = self.getFieldColor(nodeType)
+        rectItem.setBrush(QBrush(newColor))
+        delta = {
+            "fileName": self.m_fileName,
+            "proto": parentText,
+            "type": nodeType,
+            "field": nodeName,
+            "no": curIndex,
+            "oldField": curField,
+        }
+        self.onEvent("onEditProto", None, delta)
 
     def getFieldColor(self, fieldType):
         if fieldType in ["double", "float"]:

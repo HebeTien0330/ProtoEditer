@@ -1,8 +1,8 @@
 '''
 :@Author: tangchengqin
-:@Date: 2025/1/16 15:22:26
+:@Date: 2025/1/16 16:43:37
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/16 16:59:38
+:@LastEditTime: 2025/1/16 16:43:37
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -15,11 +15,13 @@ validTypes = [
     "fixed32", "fixed64", "sfixed32", "sfixed64", "bool", "string", "bytes", "map"
 ]
 
-class AddNodeDialog(QDialog):
-
+class EditNodeDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Add Child Node")
+        self.initUI()
+
+    def initUI(self):
+        self.setWindowTitle("Edit Node")
         self.m_layout = QVBoxLayout()
         self.setMinimumSize(300, 200)
         self.m_typeLabel = QLabel("Node Type:")
