@@ -85,8 +85,7 @@ class ProtoWriter:
         protos = self.m_protos.get(fileName)
         if not protos:
             return
-        context = """
-syntax = "proto3";
+        context = """syntax = "proto3";
 
 package protocol.room;
 
@@ -99,10 +98,10 @@ option go_package = "/message";
                     continue
                 if info["isRepeated"]:
                     message += f"""
-repeated {info["type"]} {param} = {info["no"]};"""
+  repeated {info["type"]} {param} = {info["no"]};"""
                     continue
                 message +=f"""
-{info["type"]} {param} = {info["no"]};"""
+  {info["type"]} {param} = {info["no"]};"""
                 
             message = """
 message %s {%s
@@ -111,6 +110,6 @@ message %s {%s
 
             context += message
 
-        print(context)
-        # with open(self.m_originPath[fileName], "w") as f:
-        #     f.write(context)
+        # print(context)
+        with open(self.m_originPath[fileName], "w") as f:
+            f.write(context)

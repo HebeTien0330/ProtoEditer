@@ -55,6 +55,7 @@ class ViewsManager:
         self.m_customTabBar = customTabBar
         installEventSystem(self)
         self.listen("onSave", self.save)
+        self.listen("onRefreshViews", self.refreshCurrentView)
         self.load()
 
     def save(self):
@@ -99,14 +100,14 @@ class ViewsManager:
         self.m_pathMap[fileName] = path
         self.m_window.replaceMainContent(self.m_tabs)
 
-    def updateView(self, fileName):
+    def updateView(self, fileName, mode="all"):
         path = self.m_pathMap.get(fileName)
         parser = getParser()
         content = self.getCurrentTabContent(path)
         protos = parser.parser(path, content)
         self.m_viewPage.update(content)
         graphPage = self.m_graphMap.get(fileName)
-        if not graphPage:
+        if not graphPage or mode != "all":
             return
         graphPage.update(fileName, protos)
 
@@ -130,3 +131,13 @@ class ViewsManager:
         if self.m_tabs.count() > 0:
             return
         self.m_viewPage.update("")
+
+    def refreshCurrentView(self, mode="all"):
+        currentIndex = self.m_tabs.currentIndex()
+        if currentIndex < 0:
+            return  # 没有选中的标签页
+        fileName = self.m_tabs.tabText(currentIndex)
+        path = self.m_pathMap.get(fileName)
+        if not path:
+            return  # 路径不存在
+        self.updateView(fileName, mode)

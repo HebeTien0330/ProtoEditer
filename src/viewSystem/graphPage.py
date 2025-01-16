@@ -240,6 +240,7 @@ class GraphPage:
             "field": nodeName,
         }
         self.onEvent("onChangeProto", None, delta)
+        self.onEvent("onRefreshViews", None, "all")
 
     def findRect(self, pos):
         items = self.m_scene.items(pos)
@@ -312,6 +313,7 @@ class GraphPage:
             "oldField": curField,
         }
         self.onEvent("onEditProto", None, delta)
+        self.onEvent("onRefreshViews", None, "part")
 
     def getFieldColor(self, fieldType):
         if fieldType in ["double", "float"]:
