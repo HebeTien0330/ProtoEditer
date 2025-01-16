@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/11 15:04:18
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/15 17:32:25
+:@LastEditTime: 2025/1/16 14:16:39
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -10,7 +10,7 @@
 from PyQt5.QtWidgets import QMainWindow, QGraphicsScene, QGraphicsView, QWidget, QGraphicsDropShadowEffect
 from PyQt5.QtWidgets import QGraphicsRectItem, QVBoxLayout, QGraphicsTextItem, QGraphicsLineItem
 from PyQt5.QtGui import QPen, QBrush, QColor, QWheelEvent
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QRectF
 
 class CustomGraphicsView(QGraphicsView):
     def __init__(self, scene):
@@ -58,6 +58,20 @@ class GraphPage:
         offsetX = 50
         offsetY = 50
         self.drawTree(protos, offsetX, offsetY)
+        self.updateSceneRect()
+
+    def updateSceneRect(self):
+        allItems = self.m_scene.items()
+        if not allItems:
+            self.m_scene.setSceneRect(QRectF())
+            return
+        boundingRect = allItems[0].boundingRect()
+        for item in allItems[1:]:
+            reac = item.boundingRect()
+            boundingRect = boundingRect.united(reac)
+        margin = 100
+        boundingRect.adjust(-margin, -margin, margin, margin)
+        self.m_scene.setSceneRect(boundingRect)
 
     def createIndexText(self, index):
         return QGraphicsTextItem(index)
