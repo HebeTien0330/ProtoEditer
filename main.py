@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/8 16:39:30
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/15 17:56:01
+:@LastEditTime: 2025/1/16 18:10:30
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -79,19 +79,21 @@ class MainWindow(QMainWindow):
 
     def createMenuBar(self):
         # 添加文件菜单
-        self.m_manuBarManager.addMenu('文件(F)', '新建(N)', self.newFile)
-        self.m_manuBarManager.addMenu('文件(F)', '打开(O)', self.openFile)
-        self.m_manuBarManager.addMenu('文件(F)', '保存(S)', self.saveFile)
-        self.m_manuBarManager.addMenu('文件(F)', '退出(D)', self.close)
+        self.m_manuBarManager.addMenu('文件(F)', '新建项目 (New Project)', self.newProject)
+        self.m_manuBarManager.addMenu('文件(F)', '打开项目 (Open Project)', self.openProject)
+        self.m_manuBarManager.addMenu('文件(F)', '新建文件 (New File)', self.newFile)
+        self.m_manuBarManager.addMenu('文件(F)', '保存 (Save)', self.saveFile)
+        self.m_manuBarManager.addMenu('文件(F)', '导出 (Export)', self.export)
+        self.m_manuBarManager.addMenu('文件(F)', '退出 (Exit)', self.close)
 
         # 添加编辑菜单
-        self.m_manuBarManager.addMenu('编辑(E)', '撤销(Z)')
-        self.m_manuBarManager.addMenu('编辑(E)', '重做(Y)')
+        self.m_manuBarManager.addMenu('编辑(E)', '撤销 (Undo)')
+        self.m_manuBarManager.addMenu('编辑(E)', '重做 (Redo)')
 
         # 添加首选项菜单
-        self.m_manuBarManager.addMenu('首选项(P)', '设置')
+        self.m_manuBarManager.addMenu('首选项(P)', '设置 (Settings)')
 
-    def newFile(self):
+    def newProject(self):
         dialog = NewProjectDialog(self)
         if dialog.exec_() != QDialogButtonBox.Ok:
             return
@@ -113,11 +115,17 @@ class MainWindow(QMainWindow):
         # 处理新建项目逻辑
         self.createProject(projectName, savePath, logPath)
 
-    def openFile(self):
+    def openProject(self):
         self.onEvent("onOpenFile")
+
+    def newFile(self):
+        pass
 
     def saveFile(self):
         QMessageBox.information(self, "保存(S)", "保存文件")
+
+    def export(self):
+        pass
 
     def getViewsManager(self):
         return self.m_viewsManager
