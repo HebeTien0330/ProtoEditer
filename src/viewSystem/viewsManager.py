@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/11 12:18:58
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/15 10:19:32
+:@LastEditTime: 2025/1/16 15:43:49
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -93,7 +93,7 @@ class ViewsManager:
 
         parser = getParser()
         protos = parser.parser(path, content)
-        graphPage.update(protos)
+        graphPage.update(fileName, protos)
 
         self.m_graphMap[fileName] = graphPage
         self.m_pathMap[fileName] = path
@@ -108,7 +108,7 @@ class ViewsManager:
         graphPage = self.m_graphMap.get(fileName)
         if not graphPage:
             return
-        graphPage.update(protos)
+        graphPage.update(fileName, protos)
 
     def switchView(self, fileName):
         index = list(self.m_pathMap.keys()).index(fileName)

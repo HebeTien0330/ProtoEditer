@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/11 15:04:18
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/16 15:27:50
+:@LastEditTime: 2025/1/16 15:46:27
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -11,6 +11,7 @@ from PyQt5.QtWidgets import QMainWindow, QGraphicsScene, QGraphicsView, QWidget,
 from PyQt5.QtWidgets import QGraphicsRectItem, QVBoxLayout, QGraphicsTextItem, QGraphicsLineItem, QMenu, QDialog
 from PyQt5.QtGui import QPen, QBrush, QColor, QWheelEvent
 from PyQt5.QtCore import Qt, QRectF
+from components.event import installEventSystem
 from .addNodeDialog import AddNodeDialog
 
 
@@ -64,6 +65,8 @@ class GraphPage:
         self.m_tab = QWidget()
         self.m_scene = QGraphicsScene()
         self.m_view = CustomGraphicsView(self.m_scene, self)
+        self.m_fileName = None
+        installEventSystem(self)
         self.setup()
 
     def setup(self):
@@ -75,7 +78,8 @@ class GraphPage:
         self.m_view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.m_view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
-    def update(self, protos):
+    def update(self, fileName, protos):
+        self.m_fileName = fileName
         self.m_scene.clear()
         offsetX = 50
         offsetY = 50
@@ -189,10 +193,7 @@ class GraphPage:
             subY = lastSubY + maxSubHeight + 50
             y = subY
 
-    def canAddChildNode(self, pos):
-        parentRect = self.findParentRect(pos)
-        if not parentRect:
-            return False
+    def getParentNodeText(self, parentRect):
         parentRectBounding = parentRect.sceneBoundingRect()
         parentTextItems = self.m_scene.items(parentRectBounding)
         parentText = None
@@ -200,6 +201,13 @@ class GraphPage:
             if isinstance(item, QGraphicsTextItem):
                 parentText = item.toPlainText()
                 break
+        return parentText
+
+    def canAddChildNode(self, pos):
+        parentRect = self.findParentRect(pos)
+        if not parentRect:
+            return False
+        parentText = self.getParentNodeText(parentRect)
         if not parentText:
             return False
         if not (parentText.startswith("C2S") or parentText.startswith("S2C")):
@@ -210,28 +218,14 @@ class GraphPage:
         parentRect = self.findParentRect(pos)
         if not parentRect:
             return
-        parentX = parentRect.rect().x()
-        parentY = parentRect.rect().y()
-        parentWidth = parentRect.rect().width()
-        parentHeight = parentRect.rect().height()
-
-        subX = parentX + parentWidth + 30
-        subY = parentY + parentHeight / 2
-
-        fieldType = nodeType
-        fieldName = nodeName
-        fieldColor = self.getFieldColor(fieldType)
-
-        subRect, subIndexText, subTypeText, subNameText = self.createRectWithText(subX, subY, "1", fieldType, fieldName, fieldColor)
-        self.m_scene.addItem(subRect)
-        self.m_scene.addItem(subIndexText)
-        self.m_scene.addItem(subTypeText)
-        self.m_scene.addItem(subNameText)
-
-        line = self.createLine((parentX + parentWidth, parentY + parentHeight / 2), (subX, subY))
-        self.m_scene.addItem(line)
-
-        self.updateSceneRect()
+        proto = self.getParentNodeText(parentRect)
+        delta = {
+            "fileName": self.m_fileName,
+            "proto": proto,
+            "type": nodeType,
+            "field": nodeName,
+        }
+        self.onEvent("onChangeProto", None, delta)
 
     def findParentRect(self, pos):
         items = self.m_scene.items(pos)
