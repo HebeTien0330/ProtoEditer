@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/11 12:18:58
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/16 15:43:49
+:@LastEditTime: 2025/1/17 17:42:07
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -15,6 +15,7 @@ from components.cache import package, save, update, query, unpack
 from components.event import installEventSystem
 from .viewPage import ViewPage
 from .graphPage import GraphPage
+import os
 
 class CustomTabBar(QTabBar):
     closeRequested = pyqtSignal(int)
@@ -76,8 +77,10 @@ class ViewsManager:
             self.createView(tab['path'], tab['content'])
 
     def createView(self, path, content):
+        if not os.path.exists(path):
+            return 
         fileName = getFileNameInPath(path)
-        
+        print("createView::", fileName)
         # 检查文件是否已经打开
         if fileName in self.m_graphMap:
             self.swapView(fileName)

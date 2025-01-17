@@ -2,10 +2,11 @@
 :@Author: tangchengqin
 :@Date: 2025/1/10 18:13:46
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/17 15:26:57
+:@LastEditTime: 2025/1/17 17:44:32
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
+import os
 
 class Functor:
 
@@ -20,7 +21,7 @@ class Functor:
         return self.m_func(*newArgs, **newKwargs)
 
 def getFileNameInPath(path):
-    return path.split('/')[-1]
+    return os.path.basename(path)
 
 def swapDictKeys(target, key1, key2):
     keys = list(target.keys())

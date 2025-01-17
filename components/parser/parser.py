@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/13 20:39:58
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/17 15:59:50
+:@LastEditTime: 2025/1/17 17:36:35
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -25,10 +25,11 @@ class Parser:
     def __init__(self):
         self.m_index = 1001
         self.m_protos = {}
-        self.protoWriter = ProtoWriter()
+        self.m_protoWriter = ProtoWriter()
         self.load()
         installEventSystem(self)
-        self.listen("save", self.save)
+        self.listen("onSave", self.save)
+        self.listen("onNewFile", self.onNewFile)
         self.listen("onAddProto", self.onAddProto)
         self.listen("onAddProtoRoot", self.onAddProtoRoot)
         self.listen("onEditProto", self.onEditProto)
@@ -75,8 +76,6 @@ class Parser:
         return False
 
     def parser(self, fileName, context):
-        curProto = None
-        fileName = getFileNameInPath(fileName)
         protoData = self.m_protos.get(fileName, {})
         for line in context.splitlines():
             line = line.strip().strip(";")      # 先删除字符串两端的影响
@@ -105,20 +104,25 @@ class Parser:
             keyType, key, _, no = line.split(" ")
             protoData[curProto][key] = { "type": keyType, "no": int(no), "isRepeated": False }
         self.m_protos[fileName] = protoData
-        self.protoWriter.open(fileName, protoData)
+        self.m_protoWriter.open(fileName, protoData)
         return protoData
 
     def getProtos(self):
         return self.m_protos
+
     def getProto(self, fileName, key):
         protoData = self.m_protos.get(fileName, {})
         return protoData.get(key, {})
+
+    def onNewFile(self, filePath):
+        context = self.m_protoWriter.createEmptyFile(filePath)
+        self.parser(filePath, context)
 
     def onAddProto(self, delta):
         fileName = delta.get("fileName")
         if not fileName:
             return
-        self.m_protos[fileName] = self.protoWriter.add(delta)
+        self.m_protos[fileName] = self.m_protoWriter.add(delta)
         self.onEvent("onRefreshViews", None, "all")
 
     def onAddProtoRoot(self, delta):
@@ -127,42 +131,42 @@ class Parser:
         fileName = delta.get("fileName")
         if not fileName:
             return
-        self.m_protos[fileName] = self.protoWriter.addRoot(delta)
+        self.m_protos[fileName] = self.m_protoWriter.addRoot(delta)
         self.onEvent("onRefreshViews", None, "all")
 
     def onEditProto(self, delta):
         fileName = delta.get("fileName")
         if not fileName:
             return
-        self.m_protos[fileName] = self.protoWriter.edit(delta)
+        self.m_protos[fileName] = self.m_protoWriter.edit(delta)
         self.onEvent("onRefreshViews", None, "all")
 
     def onDeleteProto(self, delta):
         fileName = delta.get("fileName")
         if not fileName:
             return
-        self.m_protos[fileName] = self.protoWriter.delete(delta)
+        self.m_protos[fileName] = self.m_protoWriter.delete(delta)
         self.onEvent("onRefreshViews", None, "all")
 
     def onDeleteProtoRoot(self, delta):
         fileName = delta.get("fileName")
         if not fileName:
             return
-        self.m_protos[fileName] = self.protoWriter.deleteRoot(delta)
+        self.m_protos[fileName] = self.m_protoWriter.deleteRoot(delta)
         self.onEvent("onRefreshViews", None, "all")
 
     def onSwapProto(self, delta):
         fileName = delta.get("fileName")
         if not fileName:
             return
-        self.m_protos[fileName] = self.protoWriter.swap(delta)
+        self.m_protos[fileName] = self.m_protoWriter.swap(delta)
         self.onEvent("onRefreshViews", None, "all")
 
     def onSwapProtoRoot(self, delta):
         fileName = delta.get("fileName")
         if not fileName:
             return
-        self.m_protos[fileName] = self.protoWriter.swapRoot(delta)
+        self.m_protos[fileName] = self.m_protoWriter.swapRoot(delta)
         self.onEvent("onRefreshViews", None, "all")
 
 
