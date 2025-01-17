@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/13 20:39:58
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/16 17:19:18
+:@LastEditTime: 2025/1/17 11:30:51
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -30,6 +30,8 @@ class Parser:
         self.listen("save", self.save)
         self.listen("onChangeProto", self.onChangeProto)
         self.listen("onEditProto", self.onEditProto)
+        self.listen("onDeleteProto", self.onDeleteProto)
+        self.listen("onDeleteProtoRoot", self.onDeleteProtoRoot)
 
     def save(self):
         data = {
@@ -112,6 +114,12 @@ class Parser:
 
     def onEditProto(self, delta):
         self.protoWriter.edit(delta)
+
+    def onDeleteProto(self, delta):
+        self.protoWriter.delete(delta)
+
+    def onDeleteProtoRoot(self, delta):
+        self.protoWriter.deleteRoot(delta)
 
 
 if "g_Parser" not in globals():
