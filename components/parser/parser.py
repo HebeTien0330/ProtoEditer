@@ -28,10 +28,12 @@ class Parser:
         self.load()
         installEventSystem(self)
         self.listen("save", self.save)
-        self.listen("onChangeProto", self.onChangeProto)
+        self.listen("onAddProto", self.onAddProto)
+        self.listen("onAddProtoRoot", self.onAddProtoRoot)
         self.listen("onEditProto", self.onEditProto)
         self.listen("onDeleteProto", self.onDeleteProto)
         self.listen("onDeleteProtoRoot", self.onDeleteProtoRoot)
+        self.listen("onSwitchProto", self.onSwitchProto)
 
     def save(self):
         data = {
@@ -109,8 +111,13 @@ class Parser:
         protoData = self.m_protos.get(fileName, {})
         return protoData.get(key, {})
 
-    def onChangeProto(self, delta):
-        self.protoWriter.update(delta)
+    def onAddProto(self, delta):
+        self.protoWriter.add(delta)
+
+    def onAddProtoRoot(self, delta):
+        delta["ProtoIdx"] = self.m_index
+        self.m_index += 1
+        self.protoWriter.addRoot(delta)
 
     def onEditProto(self, delta):
         self.protoWriter.edit(delta)
@@ -120,6 +127,9 @@ class Parser:
 
     def onDeleteProtoRoot(self, delta):
         self.protoWriter.deleteRoot(delta)
+
+    def onSwitchProto(self, delta):
+        self.protoWriter.switch(delta)
 
 
 if "g_Parser" not in globals():

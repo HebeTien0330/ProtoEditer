@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/16 15:22:26
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/16 16:59:38
+:@LastEditTime: 2025/1/17 11:38:09
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -67,5 +67,38 @@ class AddNodeDialog(QDialog):
         if not nodeName:
             return False
         if not re.match(r'^[a-zA-Z_][a-zA-Z0-9_]*$', nodeName):
+            return False
+        return True
+
+class AddRootNodeDialog(QDialog):
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Add Root Node")
+        self.m_layout = QVBoxLayout()
+        self.setMinimumSize(300, 200)
+        self.m_nameLabel = QLabel("Node Name (must start with S2C or C2S):")
+        self.m_nameLineEdit = QLineEdit()
+        self.m_btnSubmit = QPushButton("Submit")
+        self.m_btnSubmit.clicked.connect(self.onSubmitClicked)
+        self.m_layout.addWidget(self.m_nameLabel)
+        self.m_layout.addWidget(self.m_nameLineEdit)
+        self.m_layout.addWidget(self.m_btnSubmit)
+        self.setLayout(self.m_layout)
+
+    def getNodeName(self):
+        return self.m_nameLineEdit.text()
+    
+    def onSubmitClicked(self):
+        nodeName = self.getNodeName()
+        if not self.validNameInput(nodeName):
+            QMessageBox.warning(self, "Invalid Input", "Node name must start with S2C or C2S!!!")
+            return
+        self.accept()
+
+    def validNameInput(self, nodeName):
+        if not nodeName:
+            return False
+        if not re.match(r'^(S2C|C2S)[a-zA-Z0-9_]*$', nodeName):
             return False
         return True
