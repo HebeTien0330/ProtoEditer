@@ -2,12 +2,12 @@
 :@Author: tangchengqin
 :@Date: 2025/1/16 14:48:41
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/17 15:04:05
+:@LastEditTime: 2025/1/17 15:59:46
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
 from components.event import installEventSystem
-from components.utils import getFileNameInPath
+from components.utils import getFileNameInPath, swapDictKeys
 
 class ProtoWriter:
 
@@ -134,7 +134,7 @@ class ProtoWriter:
         self.write()
         return self.m_protos[fileName]
 
-    def switch(self, delta):
+    def swap(self, delta):
         fileName = delta.get("fileName")
         protos = self.m_protos.get(fileName)
         if not protos:
@@ -155,6 +155,32 @@ class ProtoWriter:
             return (0, 0)
         info = dict(sorted(info.items(), key=sortKey))
         self.m_protos[fileName][proto] = info
+        self.m_update[fileName] = True
+        self.write()
+        return self.m_protos[fileName]
+
+    def swapRoot(self, delta):
+        fileName = delta.get("fileName")
+        protos = self.m_protos.get(fileName)
+        if not protos:
+            return
+        proto = delta.get("proto")
+        protoNames = list(protos.keys())
+        index = protoNames.index(proto)
+        direction = delta.get("direction")
+        if direction == "up":
+            if index <= 0:
+                return
+            targetProto = protoNames[index - 1]
+            protos = swapDictKeys(protos, proto, targetProto)
+        elif direction == "down":
+            if index >= len(protos) - 1:
+                return
+            targetProto = protoNames[index + 1]
+            protos = swapDictKeys(protos, proto, targetProto)
+        else:
+            return
+        self.m_protos[fileName] = protos
         self.m_update[fileName] = True
         self.write()
         return self.m_protos[fileName]

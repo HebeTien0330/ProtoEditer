@@ -2,12 +2,13 @@
 :@Author: tangchengqin
 :@Date: 2025/1/13 20:39:58
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/17 11:30:51
+:@LastEditTime: 2025/1/17 15:59:50
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
 from components.cache import package, unpack, save, update, query
 from components.event import installEventSystem
+from components.utils import getFileNameInPath
 from .protoWriter import ProtoWriter
 import re
 
@@ -33,7 +34,8 @@ class Parser:
         self.listen("onEditProto", self.onEditProto)
         self.listen("onDeleteProto", self.onDeleteProto)
         self.listen("onDeleteProtoRoot", self.onDeleteProtoRoot)
-        self.listen("onSwitchProto", self.onSwitchProto)
+        self.listen("onSwapProto", self.onSwapProto)
+        self.listen("onSwapProtoRoot", self.onSwapProtoRoot)
 
     def save(self):
         data = {
@@ -74,6 +76,7 @@ class Parser:
 
     def parser(self, fileName, context):
         curProto = None
+        fileName = getFileNameInPath(fileName)
         protoData = self.m_protos.get(fileName, {})
         for line in context.splitlines():
             line = line.strip().strip(";")      # 先删除字符串两端的影响
@@ -112,24 +115,55 @@ class Parser:
         return protoData.get(key, {})
 
     def onAddProto(self, delta):
-        self.protoWriter.add(delta)
+        fileName = delta.get("fileName")
+        if not fileName:
+            return
+        self.m_protos[fileName] = self.protoWriter.add(delta)
+        self.onEvent("onRefreshViews", None, "all")
 
     def onAddProtoRoot(self, delta):
         delta["ProtoIdx"] = self.m_index
         self.m_index += 1
-        self.protoWriter.addRoot(delta)
+        fileName = delta.get("fileName")
+        if not fileName:
+            return
+        self.m_protos[fileName] = self.protoWriter.addRoot(delta)
+        self.onEvent("onRefreshViews", None, "all")
 
     def onEditProto(self, delta):
-        self.protoWriter.edit(delta)
+        fileName = delta.get("fileName")
+        if not fileName:
+            return
+        self.m_protos[fileName] = self.protoWriter.edit(delta)
+        self.onEvent("onRefreshViews", None, "all")
 
     def onDeleteProto(self, delta):
-        self.protoWriter.delete(delta)
+        fileName = delta.get("fileName")
+        if not fileName:
+            return
+        self.m_protos[fileName] = self.protoWriter.delete(delta)
+        self.onEvent("onRefreshViews", None, "all")
 
     def onDeleteProtoRoot(self, delta):
-        self.protoWriter.deleteRoot(delta)
+        fileName = delta.get("fileName")
+        if not fileName:
+            return
+        self.m_protos[fileName] = self.protoWriter.deleteRoot(delta)
+        self.onEvent("onRefreshViews", None, "all")
 
-    def onSwitchProto(self, delta):
-        self.protoWriter.switch(delta)
+    def onSwapProto(self, delta):
+        fileName = delta.get("fileName")
+        if not fileName:
+            return
+        self.m_protos[fileName] = self.protoWriter.swap(delta)
+        self.onEvent("onRefreshViews", None, "all")
+
+    def onSwapProtoRoot(self, delta):
+        fileName = delta.get("fileName")
+        if not fileName:
+            return
+        self.m_protos[fileName] = self.protoWriter.swapRoot(delta)
+        self.onEvent("onRefreshViews", None, "all")
 
 
 if "g_Parser" not in globals():

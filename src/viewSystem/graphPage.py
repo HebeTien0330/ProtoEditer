@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/11 15:04:18
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/17 14:57:20
+:@LastEditTime: 2025/1/17 15:44:02
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -47,11 +47,19 @@ class CustomGraphicsView(QGraphicsView):
             addAction = contextMenu.addAction("Add Child Node")
             contextMenu.addSeparator()
             deleteAction = contextMenu.addAction("Delete Root Node")
+            contextMenu.addSeparator()
+            moveUpAction = contextMenu.addAction("Move Up")
+            contextMenu.addSeparator()
+            moveDownAction = contextMenu.addAction("Move Down")
             action = contextMenu.exec_(self.mapToGlobal(event.pos()))
             if action == addAction:
                 self.showAddNodeDialog(pos)
             elif action == deleteAction:
                 self.showDeleteNodeDialog(pos)
+            elif action == moveUpAction:
+                self.m_graphPage.moveRootNodeUp(pos)
+            elif action == moveDownAction:
+                self.m_graphPage.moveRootNodeDown(pos)
         elif self.m_graphPage.canEditChildNode(pos):
             contextMenu = QMenu(self)
             editAction = contextMenu.addAction("Edit Child Node")
@@ -293,7 +301,6 @@ class GraphPage:
             "field": nodeName,
         }
         self.onEvent("onAddProto", None, delta)
-        self.onEvent("onRefreshViews", None, "all")
 
     def addRootNode(self, nodeName="newField"):
         delta = {
@@ -301,7 +308,6 @@ class GraphPage:
             "proto": nodeName,
         }
         self.onEvent("onAddProtoRoot", None, delta)
-        self.onEvent("onRefreshViews", None, "all")
 
     def findRect(self, pos):
         items = self.m_scene.items(pos)
@@ -388,7 +394,6 @@ class GraphPage:
             "oldField": curField,
         }
         self.onEvent("onEditProto", None, delta)
-        self.onEvent("onRefreshViews", None, "part")
 
     def deleteChildNode(self, pos):
         rectItem = self.findRect(pos)
@@ -410,7 +415,6 @@ class GraphPage:
             "field": curField,
         }
         self.onEvent("onDeleteProto", None, delta)
-        self.onEvent("onRefreshViews", None, "all")
 
     def deleteRootNode(self, pos):
         parentRect = self.findRect(pos)
@@ -424,7 +428,6 @@ class GraphPage:
             "proto": parentText,
         }
         self.onEvent("onDeleteProtoRoot", None, delta)
-        self.onEvent("onRefreshViews", None, "all")
 
     def moveChildNodeUp(self, pos):
         rectItem = self.findRect(pos)
@@ -443,7 +446,7 @@ class GraphPage:
         prevRect = childRects[currentIndex - 1]
         prevField = self.getParentNodeText(prevRect)
         curField = self.getParentNodeText(rectItem)
-        self.switchNode(parentText, curField, prevField, "up")
+        self.swapNode(parentText, curField, prevField, "up")
 
     def moveChildNodeDown(self, pos):
         rectItem = self.findRect(pos)
@@ -462,9 +465,9 @@ class GraphPage:
         nextRect = childRects[currentIndex + 1]
         nextField = self.getParentNodeText(nextRect)
         curField = self.getParentNodeText(rectItem)
-        self.switchNode(parentText, curField, nextField, "down")
+        self.swapNode(parentText, curField, nextField, "down")
 
-    def switchNode(self, proto, curField, targetField, direction):
+    def swapNode(self, proto, curField, targetField, direction):
         delta = {
             "fileName": self.m_fileName,
             "proto": proto,
@@ -472,8 +475,33 @@ class GraphPage:
             "targetField": targetField,
             "direction": direction,
         }
-        self.onEvent("onSwitchProto", None, delta)
-        self.onEvent("onRefreshViews", None, "all")
+        self.onEvent("onSwapProto", None, delta)
+
+    def moveRootNodeUp(self, pos):
+        rectItem = self.findRect(pos)
+        if not rectItem:
+            return
+        parentText = self.getParentNodeText(rectItem)
+        if not parentText:
+            return
+        self.swapRootNode(parentText, "up")
+
+    def moveRootNodeDown(self, pos):
+        rectItem = self.findRect(pos)
+        if not rectItem:
+            return
+        parentText = self.getParentNodeText(rectItem)
+        if not parentText:
+            return
+        self.swapRootNode(parentText, "down")
+
+    def swapRootNode(self, proto, direction):
+        delta = {
+            "fileName": self.m_fileName,
+            "proto": proto,
+            "direction": direction,
+        }
+        self.onEvent("onSwapProtoRoot", None, delta)
 
     def getFieldColor(self, fieldType):
         if fieldType in ["double", "float"]:

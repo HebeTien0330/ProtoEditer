@@ -80,7 +80,7 @@ class ViewsManager:
         
         # 检查文件是否已经打开
         if fileName in self.m_graphMap:
-            self.switchView(fileName)
+            self.swapView(fileName)
             return
 
         graphPage = GraphPage(self.m_window)
@@ -111,7 +111,7 @@ class ViewsManager:
             return
         graphPage.update(fileName, protos)
 
-    def switchView(self, fileName):
+    def swapView(self, fileName):
         index = list(self.m_pathMap.keys()).index(fileName)
         self.m_tabs.setCurrentIndex(index)
 
