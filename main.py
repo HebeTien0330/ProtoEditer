@@ -7,12 +7,12 @@
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QSplitter
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QDialogButtonBox
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QDialogButtonBox, QDialog
 from PyQt5.QtCore import Qt
 from components.event import installEventSystem
 from components.logger import getLogger
 from src.menuBar import ManuBarManager
-from src.fileSystem import FileSystem
+from src.fileSystem import FileSystem, NewFileDialog
 from src.viewSystem import ViewsManager
 from src.newProject import NewProjectDialog
 import sys
@@ -120,7 +120,14 @@ class MainWindow(QMainWindow):
         self.onEvent("onOpenFile")
 
     def newFile(self):
-        pass
+        dialog = NewFileDialog(self)
+        if dialog.exec_() != QDialog.Accepted:
+            return
+        fileName = dialog.getFileName()
+        if not fileName:
+            QMessageBox.warning(self, "Warning", "file name can not be empty")
+            return
+        self.m_fileSystem.newFile(fileName)
 
     def saveFile(self):
         QMessageBox.information(self, "保存(S)", "保存文件")

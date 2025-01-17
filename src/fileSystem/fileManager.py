@@ -116,3 +116,7 @@ class FileSystem:
             content = file.read()
             viewMgr.createView(filePath, content)
             viewMgr.swapView(getFileNameInPath(filePath))
+
+    def newFile(self, filePath):
+        print("new file:", filePath)
+        # TODO: create new file
