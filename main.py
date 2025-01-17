@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/8 16:39:30
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/17 16:19:27
+:@LastEditTime: 2025/1/17 17:14:12
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -121,9 +121,10 @@ class MainWindow(QMainWindow):
 
     def newFile(self):
         dialog = NewFileDialog(self)
+        dialog.setRootPath(self.m_fileSystem.getPath())
         if dialog.exec_() != QDialog.Accepted:
             return
-        fileName = dialog.getFileName()
+        fileName = dialog.getFilePath()
         if not fileName:
             QMessageBox.warning(self, "Warning", "file name can not be empty")
             return

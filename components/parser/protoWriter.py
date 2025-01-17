@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/16 14:48:41
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/17 15:59:46
+:@LastEditTime: 2025/1/17 17:25:59
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -222,3 +222,14 @@ message %s {%s
         # print(context)
         with open(self.m_originPath[fileName], "w") as f:
             f.write(context)
+
+    def createEmptyFile(self, filePath):
+        context = """syntax = "proto3";
+
+package protocol.room;
+
+option go_package = "/message";
+"""
+        with open(filePath, "w") as f:
+            f.write(context)
+        return context

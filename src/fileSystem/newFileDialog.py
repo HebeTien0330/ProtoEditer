@@ -2,12 +2,12 @@
 :@Author: tangchengqin
 :@Date: 2025/1/17 16:27:59
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/17 16:50:26
+:@LastEditTime: 2025/1/17 17:11:00
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
 from PyQt5.QtWidgets import QVBoxLayout, QDialogButtonBox, QDialog, QLineEdit
-from PyQt5.QtWidgets import QLabel, QPushButton, QFileDialog
+from PyQt5.QtWidgets import QLabel, QPushButton, QFileDialog, QMessageBox
 from PyQt5.QtCore import QDir
 
 class NewFileDialog(QDialog):
@@ -32,9 +32,16 @@ class NewFileDialog(QDialog):
         self.buttonBox.rejected.connect(self.reject)
         self.layout.addWidget(self.buttonBox)
         self.setLayout(self.layout)
+        self.m_path = None
+
+    def setRootPath(self, path):
+        self.m_path = path
 
     def browsePath(self):
-        path = QFileDialog.getExistingDirectory(self, "Choose Path", QDir.homePath())
+        rootPath = self.m_path
+        if not self.m_path:
+            rootPath = QDir.homePath()
+        path = QFileDialog.getExistingDirectory(self, "Choose Path", rootPath)
         if not path:
             return
         self.pathLineEdit.setText(path)
@@ -49,3 +56,13 @@ class NewFileDialog(QDialog):
         if not path:
             return None
         return QDir.toNativeSeparators(f"{path}/{fileName}")
+
+    def accept(self):
+        filePath = self.getFilePath()
+        if not filePath:
+            QMessageBox.warning(self, "Invalid Input", "Please enter a valid file name and path.")
+            return
+        if QDir(filePath).exists():
+            QMessageBox.warning(self, "File Exists", f"The file '{filePath}' already exists.")
+            return
+        super().accept()

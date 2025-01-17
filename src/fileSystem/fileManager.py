@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/8 17:16:40
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/13 20:22:16
+:@LastEditTime: 2025/1/17 17:35:32
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -81,6 +81,9 @@ class FileSystem:
             return
         self.update(path)
 
+    def getPath(self):
+        return self.m_data.get("path")
+
     def onOpenFile(self):
         folderPath = QFileDialog.getExistingDirectory(self.m_window, "打开文件夹", "")
         if not folderPath:
@@ -118,5 +121,5 @@ class FileSystem:
             viewMgr.swapView(getFileNameInPath(filePath))
 
     def newFile(self, filePath):
-        print("new file:", filePath)
-        # TODO: create new file
+        self.onEvent("onNewFile", None, filePath)
+        self.displayFile(filePath)
