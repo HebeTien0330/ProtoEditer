@@ -14,7 +14,6 @@ from src.menuBar import ManuBarManager
 from src.fileSystem import FileSystem
 from src.viewSystem import ViewsManager
 from src.newProject import NewProjectDialog
-from components.cache import update, save, package
 import sys
 
 class MainWindow(QMainWindow):

@@ -24,7 +24,7 @@ class ProtoWriter:
         self.m_update[fileName] = False
         self.m_originPath[fileName] = path
 
-    def update(self, delta):
+    def add(self, delta):
         fileName = delta.get("fileName")
         protos = self.m_protos.get(fileName)
         if not protos:
@@ -45,6 +45,24 @@ class ProtoWriter:
             "isRepeated": isRepeated
         }
         self.m_protos[fileName][protoName] = proto
+        self.m_update[fileName] = True
+        self.write()
+        return self.m_protos[fileName]
+
+    def addRoot(self, delta):
+        fileName = delta.get("fileName")
+        protos = self.m_protos.get(fileName)
+        if not protos:
+            return
+        protoName = delta.get("proto")
+        if not protoName:
+            return
+        protoIdx = delta.get("ProtoIdx")
+        if not protoIdx:
+            return
+        self.m_protos[fileName][protoName] = {
+            "ProtoIdx": protoIdx
+        }
         self.m_update[fileName] = True
         self.write()
         return self.m_protos[fileName]

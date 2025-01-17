@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/11 15:04:18
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/17 11:25:40
+:@LastEditTime: 2025/1/17 11:45:56
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import QDialog, QMessageBox
 from PyQt5.QtGui import QPen, QBrush, QColor, QWheelEvent
 from PyQt5.QtCore import Qt, QRectF
 from components.event import installEventSystem
-from .addNodeDialog import AddNodeDialog
+from .addNodeDialog import AddNodeDialog, AddRootNodeDialog
 from .editNodeDialog import EditNodeDialog
 
 class CustomGraphicsView(QGraphicsView):
@@ -97,8 +97,12 @@ class CustomGraphicsView(QGraphicsView):
         elif self.m_graphPage.canEditChildNode(pos):
             self.m_graphPage.deleteChildNode(pos)
 
-    def showNewRootNodeDialog(self):
-        pass
+    def showNewRootNodeDialog(self, pos):
+        dialog = AddRootNodeDialog(self)
+        if dialog.exec_() != QDialog.Accepted:
+            return
+        nodeName = dialog.getNodeName()
+        self.m_graphPage.addRootNode(nodeName)
 
 
 class GraphPage:
@@ -279,7 +283,15 @@ class GraphPage:
             "type": nodeType,
             "field": nodeName,
         }
-        self.onEvent("onChangeProto", None, delta)
+        self.onEvent("onAddProto", None, delta)
+        self.onEvent("onRefreshViews", None, "all")
+
+    def addRootNode(self, nodeName="newField"):
+        delta = {
+            "fileName": self.m_fileName,
+            "proto": nodeName,
+        }
+        self.onEvent("onAddProtoRoot", None, delta)
         self.onEvent("onRefreshViews", None, "all")
 
     def findRect(self, pos):
