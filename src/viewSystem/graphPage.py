@@ -443,7 +443,7 @@ class GraphPage:
         prevRect = childRects[currentIndex - 1]
         prevField = self.getParentNodeText(prevRect)
         curField = self.getParentNodeText(rectItem)
-        self.switchNode(parentText, curField, prevField, "up")
+        self.swapNode(parentText, curField, prevField, "up")
 
     def moveChildNodeDown(self, pos):
         rectItem = self.findRect(pos)
@@ -462,9 +462,9 @@ class GraphPage:
         nextRect = childRects[currentIndex + 1]
         nextField = self.getParentNodeText(nextRect)
         curField = self.getParentNodeText(rectItem)
-        self.switchNode(parentText, curField, nextField, "down")
+        self.swapNode(parentText, curField, nextField, "down")
 
-    def switchNode(self, proto, curField, targetField, direction):
+    def swapNode(self, proto, curField, targetField, direction):
         delta = {
             "fileName": self.m_fileName,
             "proto": proto,
@@ -472,7 +472,7 @@ class GraphPage:
             "targetField": targetField,
             "direction": direction,
         }
-        self.onEvent("onSwitchProto", None, delta)
+        self.onEvent("onSwapProto", None, delta)
         self.onEvent("onRefreshViews", None, "all")
 
     def getFieldColor(self, fieldType):

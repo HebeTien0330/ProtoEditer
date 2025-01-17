@@ -134,7 +134,7 @@ class ProtoWriter:
         self.write()
         return self.m_protos[fileName]
 
-    def switch(self, delta):
+    def swap(self, delta):
         fileName = delta.get("fileName")
         protos = self.m_protos.get(fileName)
         if not protos:

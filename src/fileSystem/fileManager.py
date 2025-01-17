@@ -115,4 +115,4 @@ class FileSystem:
         with open(filePath, 'r') as file:
             content = file.read()
             viewMgr.createView(filePath, content)
-            viewMgr.switchView(getFileNameInPath(filePath))
+            viewMgr.swapView(getFileNameInPath(filePath))
