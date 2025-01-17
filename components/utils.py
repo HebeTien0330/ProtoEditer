@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/10 18:13:46
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/11 15:54:32
+:@LastEditTime: 2025/1/17 15:26:57
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -21,3 +21,11 @@ class Functor:
 
 def getFileNameInPath(path):
     return path.split('/')[-1]
+
+def swapDictKeys(target, key1, key2):
+    keys = list(target.keys())
+    # 找到元素的索引
+    index1 = keys.index(key1)
+    index2 = keys.index(key2)
+    keys[index1], keys[index2] = keys[index2], keys[index1]
+    return {key: target[key] for key in keys}
