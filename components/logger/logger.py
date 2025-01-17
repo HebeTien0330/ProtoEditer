@@ -2,11 +2,10 @@
 :@Author: tangchengqin
 :@Date: 2025/1/10 16:49:11
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/16 12:19:59
+:@LastEditTime: 2025/1/17 16:19:06
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
-from components.event import installEventSystem
 import os
 import datetime
 
@@ -16,7 +15,7 @@ class Logger:
 
     def __init__(self):
         self.m_fileHandles = {}
-        self.m_path = "../log/"
+        self.m_path = f"{os.getcwd()}\\log"
         self.m_maxFiles = 10
         self.init()
 
@@ -34,8 +33,6 @@ class Logger:
         if os.path.exists(self.m_path):
             return
         os.makedirs(self.m_path)
-        installEventSystem(self)
-        self.listen("onSave", self.save)
 
     def save(self):
         for fileHandle in self.m_fileHandles.values():
@@ -53,12 +50,12 @@ class Logger:
                 oldest_src = next(iter(self.m_fileHandles))
                 oldest_file_handle = self.m_fileHandles.pop(oldest_src)
                 oldest_file_handle.close()
-            self.m_fileHandles[src] = open(f"{self.m_path}/{src}.log", 'a')
-        else:
-            self.m_fileHandles[src] = self.m_fileHandles.pop(src)
+            self.m_fileHandles[src] = open(f"{self.m_path}/{src}.log", 'a', encoding="utf-8")
         
-        self.m_fileHandles[src].write(logout)
-        self.m_fileHandles[src].flush()
+        fileHandler = self.m_fileHandles[src]
+        fileHandler.write(logout)
+        fileHandler.flush()
+        os.fsync(fileHandler.fileno())
         print(logout, end="")
 
 
