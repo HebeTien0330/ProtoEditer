@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/8 16:39:30
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/16 18:10:30
+:@LastEditTime: 2025/1/17 16:19:27
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QSplitter
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QDialogButtonBox
 from PyQt5.QtCore import Qt
 from components.event import installEventSystem
+from components.logger import getLogger
 from src.menuBar import ManuBarManager
 from src.fileSystem import FileSystem
 from src.viewSystem import ViewsManager
@@ -66,6 +67,7 @@ class MainWindow(QMainWindow):
                                     )
         if reply == QMessageBox.Yes:
             self.onEvent("onSave")
+            getLogger().save()
             event.accept()
         else:
             event.ignore()
