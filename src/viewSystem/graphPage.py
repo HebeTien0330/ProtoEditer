@@ -2,13 +2,14 @@
 :@Author: tangchengqin
 :@Date: 2025/1/11 15:04:18
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/16 17:39:37
+:@LastEditTime: 2025/1/17 11:25:40
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
 
 from PyQt5.QtWidgets import QMainWindow, QGraphicsScene, QGraphicsView, QWidget, QGraphicsDropShadowEffect
-from PyQt5.QtWidgets import QGraphicsRectItem, QVBoxLayout, QGraphicsTextItem, QGraphicsLineItem, QMenu, QDialog
+from PyQt5.QtWidgets import QGraphicsRectItem, QVBoxLayout, QGraphicsTextItem, QGraphicsLineItem, QMenu
+from PyQt5.QtWidgets import QDialog, QMessageBox
 from PyQt5.QtGui import QPen, QBrush, QColor, QWheelEvent
 from PyQt5.QtCore import Qt, QRectF
 from components.event import installEventSystem
@@ -41,21 +42,32 @@ class CustomGraphicsView(QGraphicsView):
 
     def contextMenuEvent(self, event):
         pos = self.mapToScene(event.pos())
-        if self.m_graphPage.canAddChildNode(pos):
+        if self.m_graphPage.canEditRootNode(pos):
             contextMenu = QMenu(self)
             addAction = contextMenu.addAction("Add Child Node")
+            contextMenu.addSeparator()
+            deleteAction = contextMenu.addAction("Delete Root Node")
             action = contextMenu.exec_(self.mapToGlobal(event.pos()))
-            if action != addAction:
-                return
-            self.showAddNodeDialog(pos)
+            if action == addAction:
+                self.showAddNodeDialog(pos)
+            elif action == deleteAction:
+                self.showDeleteNodeDialog(pos)
+        elif self.m_graphPage.canEditChildNode(pos):
+            contextMenu = QMenu(self)
+            editAction = contextMenu.addAction("Edit Child Node")
+            contextMenu.addSeparator()
+            deleteAction = contextMenu.addAction("Delete Node")
+            action = contextMenu.exec_(self.mapToGlobal(event.pos()))
+            if action == editAction:
+                self.showEditNodeDialog(pos)
+            elif action == deleteAction:
+                self.showDeleteNodeDialog(pos)
         else:
             contextMenu = QMenu(self)
-            addAction = contextMenu.addAction("Edit Child Node")
+            newAction = contextMenu.addAction("New Root Node")
             action = contextMenu.exec_(self.mapToGlobal(event.pos()))
-            if action != addAction:
-                return
-            self.showEditNodeDialog(pos)
-
+            if action == newAction:
+                self.showNewRootNodeDialog(pos)
     def showAddNodeDialog(self, pos):
         dialog = AddNodeDialog(self)
         if dialog.exec_() != QDialog.Accepted:
@@ -72,8 +84,25 @@ class CustomGraphicsView(QGraphicsView):
         nodeName = dialog.getNodeName()
         self.m_graphPage.editChildNode(pos, nodeType, nodeName)
 
+    def showDeleteNodeDialog(self, pos):
+        dialog = QMessageBox(self)
+        dialog.setWindowTitle("Delete Node")
+        dialog.setText("Are you sure you want to delete this node?")
+        dialog.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        dialog.setDefaultButton(QMessageBox.No)
+        if dialog.exec_() != QMessageBox.Yes:
+            return
+        if self.m_graphPage.canEditRootNode(pos):
+            self.m_graphPage.deleteRootNode(pos)
+        elif self.m_graphPage.canEditChildNode(pos):
+            self.m_graphPage.deleteChildNode(pos)
+
+    def showNewRootNodeDialog(self):
+        pass
+
 
 class GraphPage:
+
     def __init__(self, window: QMainWindow):
         self.m_window = window
         self.m_tab = QWidget()
@@ -217,7 +246,7 @@ class GraphPage:
                 break
         return parentText
 
-    def canAddChildNode(self, pos):
+    def canEditRootNode(self, pos):
         parentRect = self.findRect(pos)
         if not parentRect:
             return False
@@ -225,6 +254,17 @@ class GraphPage:
         if not parentText:
             return False
         if not (parentText.startswith("C2S") or parentText.startswith("S2C")):
+            return False
+        return True
+    
+    def canEditChildNode(self, pos):
+        parentRect = self.findRect(pos)
+        if not parentRect:
+            return False
+        parentText = self.getParentNodeText(parentRect)
+        if not parentText:
+            return False
+        if parentText.startswith("C2S") or parentText.startswith("S2C"):
             return False
         return True
 
@@ -314,6 +354,42 @@ class GraphPage:
         }
         self.onEvent("onEditProto", None, delta)
         self.onEvent("onRefreshViews", None, "part")
+
+    def deleteChildNode(self, pos):
+        rectItem = self.findRect(pos)
+        if not rectItem:
+            return
+        indexText, typeText, nameText = self.getChildNodeTextCom(rectItem)
+        if not indexText or not typeText or not nameText:
+            return
+        curField = nameText.toPlainText()
+        parentRect = self.findParentRect(rectItem)
+        if not parentRect:
+            return
+        parentText = self.getParentNodeText(parentRect)
+        if not parentText:
+            return
+        delta = {
+            "fileName": self.m_fileName,
+            "proto": parentText,
+            "field": curField,
+        }
+        self.onEvent("onDeleteProto", None, delta)
+        self.onEvent("onRefreshViews", None, "all")
+
+    def deleteRootNode(self, pos):
+        parentRect = self.findRect(pos)
+        if not parentRect:
+            return
+        parentText = self.getParentNodeText(parentRect)
+        if not parentText:
+            return
+        delta = {
+            "fileName": self.m_fileName,
+            "proto": parentText,
+        }
+        self.onEvent("onDeleteProtoRoot", None, delta)
+        self.onEvent("onRefreshViews", None, "all")
 
     def getFieldColor(self, fieldType):
         if fieldType in ["double", "float"]:

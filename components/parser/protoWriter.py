@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/16 14:48:41
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/16 17:41:30
+:@LastEditTime: 2025/1/17 11:28:02
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -72,6 +72,46 @@ class ProtoWriter:
             "isRepeated": isRepeated
         }
         self.m_protos[fileName][protoName] = proto
+        self.m_update[fileName] = True
+        self.write()
+        return self.m_protos[fileName]
+
+    def delete(self, delta):
+        fileName = delta.get("fileName")
+        protos = self.m_protos.get(fileName)
+        if not protos:
+            return
+        protoName = delta.get("proto")
+        proto = protos.get(protoName)
+        if not proto:
+            return
+        targetField = delta.get("field")
+        if targetField not in proto:
+            return
+        fieldNo = proto[targetField]["no"]
+        del proto[targetField]
+        for field, info in proto.items():
+            if not isinstance(info, dict):
+                continue
+            if info["no"] <= fieldNo:
+                continue
+            info["no"] -= 1
+        self.m_protos[fileName][protoName] = proto
+        self.m_update[fileName] = True
+        self.write()
+        return self.m_protos[fileName]
+
+    def deleteRoot(self, delta):
+        fileName = delta.get("fileName")
+        protos = self.m_protos.get(fileName)
+        if not protos:
+            return
+        protoName = delta.get("proto")
+        proto = protos.get(protoName)
+        if not proto:
+            return
+        del protos[protoName]
+        self.m_protos[fileName] = protos
         self.m_update[fileName] = True
         self.write()
         return self.m_protos[fileName]
