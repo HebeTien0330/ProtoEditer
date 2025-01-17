@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/16 14:48:41
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/17 11:28:02
+:@LastEditTime: 2025/1/17 15:04:05
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -130,6 +130,31 @@ class ProtoWriter:
             return
         del protos[protoName]
         self.m_protos[fileName] = protos
+        self.m_update[fileName] = True
+        self.write()
+        return self.m_protos[fileName]
+
+    def switch(self, delta):
+        fileName = delta.get("fileName")
+        protos = self.m_protos.get(fileName)
+        if not protos:
+            return
+        proto = delta.get("proto")
+        info = protos.get(proto)
+        if not info:
+            return
+        curField, targetField = delta.get("curField"), delta.get("targetField")
+        if not info.get(curField) or not info.get(targetField):
+            return
+        info[curField]["no"], info[targetField]["no"] = info[targetField]["no"], info[curField]["no"]
+        # 排序
+        def sortKey(item):
+            _, value = item
+            if isinstance(value, dict):
+                return (1, value['no'])
+            return (0, 0)
+        info = dict(sorted(info.items(), key=sortKey))
+        self.m_protos[fileName][proto] = info
         self.m_update[fileName] = True
         self.write()
         return self.m_protos[fileName]

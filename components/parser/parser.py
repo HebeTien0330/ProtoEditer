@@ -33,6 +33,7 @@ class Parser:
         self.listen("onEditProto", self.onEditProto)
         self.listen("onDeleteProto", self.onDeleteProto)
         self.listen("onDeleteProtoRoot", self.onDeleteProtoRoot)
+        self.listen("onSwitchProto", self.onSwitchProto)
 
     def save(self):
         data = {
@@ -126,6 +127,9 @@ class Parser:
 
     def onDeleteProtoRoot(self, delta):
         self.protoWriter.deleteRoot(delta)
+
+    def onSwitchProto(self, delta):
+        self.protoWriter.switch(delta)
 
 
 if "g_Parser" not in globals():

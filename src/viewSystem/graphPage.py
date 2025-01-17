@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/11 15:04:18
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/17 11:45:56
+:@LastEditTime: 2025/1/17 14:57:20
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -56,10 +56,18 @@ class CustomGraphicsView(QGraphicsView):
             contextMenu = QMenu(self)
             editAction = contextMenu.addAction("Edit Child Node")
             contextMenu.addSeparator()
+            moveUpAction = contextMenu.addAction("Move Up")
+            contextMenu.addSeparator()
+            moveDownAction = contextMenu.addAction("Move Down")
+            contextMenu.addSeparator()
             deleteAction = contextMenu.addAction("Delete Node")
             action = contextMenu.exec_(self.mapToGlobal(event.pos()))
             if action == editAction:
                 self.showEditNodeDialog(pos)
+            elif action == moveUpAction:
+                self.m_graphPage.moveChildNodeUp(pos)
+            elif action == moveDownAction:
+                self.m_graphPage.moveChildNodeDown(pos)
             elif action == deleteAction:
                 self.showDeleteNodeDialog(pos)
         else:
@@ -68,6 +76,7 @@ class CustomGraphicsView(QGraphicsView):
             action = contextMenu.exec_(self.mapToGlobal(event.pos()))
             if action == newAction:
                 self.showNewRootNodeDialog(pos)
+
     def showAddNodeDialog(self, pos):
         dialog = AddNodeDialog(self)
         if dialog.exec_() != QDialog.Accepted:
@@ -260,7 +269,7 @@ class GraphPage:
         if not (parentText.startswith("C2S") or parentText.startswith("S2C")):
             return False
         return True
-    
+
     def canEditChildNode(self, pos):
         parentRect = self.findRect(pos)
         if not parentRect:
@@ -301,16 +310,30 @@ class GraphPage:
                 return item
         return None
 
+    def findChildRects(self, parentRect):
+        childRects = []
+        parentRectBounding = parentRect.sceneBoundingRect()
+        for item in self.m_scene.items():
+            if not isinstance(item, QGraphicsLineItem):
+                continue
+            line = item.line()
+            if not parentRectBounding.contains(line.p1()):
+                continue
+            childRect = self.findRect(line.p2())
+            if not childRect:
+                continue
+            childRects.append(childRect)
+        childRects = childRects[::-1]
+        return childRects
+
     def findParentRect(self, rectItem):
         rectBounding = rectItem.sceneBoundingRect()
         for item in self.m_scene.items():
             if not isinstance(item, QGraphicsLineItem):
                 continue
             line = item.line()
-            # 检查线条的终点是否在矩形的边界内
             if not rectBounding.contains(line.p2()):
                 continue
-            # 查找起点对应的矩形
             startRect = self.findRect(line.p1())
             if not startRect:
                 continue
@@ -401,6 +424,55 @@ class GraphPage:
             "proto": parentText,
         }
         self.onEvent("onDeleteProtoRoot", None, delta)
+        self.onEvent("onRefreshViews", None, "all")
+
+    def moveChildNodeUp(self, pos):
+        rectItem = self.findRect(pos)
+        if not rectItem:
+            return
+        parentRect = self.findParentRect(rectItem)
+        if not parentRect:
+            return
+        parentText = self.getParentNodeText(parentRect)
+        if not parentText:
+            return
+        childRects = self.findChildRects(parentRect)
+        currentIndex = childRects.index(rectItem)
+        if currentIndex <= 0:
+            return
+        prevRect = childRects[currentIndex - 1]
+        prevField = self.getParentNodeText(prevRect)
+        curField = self.getParentNodeText(rectItem)
+        self.switchNode(parentText, curField, prevField, "up")
+
+    def moveChildNodeDown(self, pos):
+        rectItem = self.findRect(pos)
+        if not rectItem:
+            return
+        parentRect = self.findParentRect(rectItem)
+        if not parentRect:
+            return
+        parentText = self.getParentNodeText(parentRect)
+        if not parentText:
+            return
+        childRects = self.findChildRects(parentRect)
+        currentIndex = childRects.index(rectItem)
+        if currentIndex >= len(childRects) - 1:
+            return
+        nextRect = childRects[currentIndex + 1]
+        nextField = self.getParentNodeText(nextRect)
+        curField = self.getParentNodeText(rectItem)
+        self.switchNode(parentText, curField, nextField, "down")
+
+    def switchNode(self, proto, curField, targetField, direction):
+        delta = {
+            "fileName": self.m_fileName,
+            "proto": proto,
+            "curField": curField,
+            "targetField": targetField,
+            "direction": direction,
+        }
+        self.onEvent("onSwitchProto", None, delta)
         self.onEvent("onRefreshViews", None, "all")
 
     def getFieldColor(self, fieldType):
