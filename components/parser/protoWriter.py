@@ -52,7 +52,7 @@ class ProtoWriter:
     def addRoot(self, delta):
         fileName = delta.get("fileName")
         protos = self.m_protos.get(fileName)
-        if not protos:
+        if protos is None:
             return
         protoName = delta.get("proto")
         if not protoName:
