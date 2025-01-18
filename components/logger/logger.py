@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/10 16:49:11
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/17 16:19:06
+:@LastEditTime: 2025/1/18 14:18:33
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -17,6 +17,7 @@ class Logger:
         self.m_fileHandles = {}
         self.m_path = f"{os.getcwd()}\\log"
         self.m_maxFiles = 10
+        self.m_persist = False
         self.init()
 
     def __new__(cls, *args, **kwargs):
@@ -43,6 +44,9 @@ class Logger:
         self.m_path = path
         self.init()
 
+    def setPersist(self, isPresist):
+        self.m_persist = isPresist
+
     def logfile(self, src, text):
         logout = f"[{datetime.datetime.now()}]: {text}\n"
         if src not in self.m_fileHandles:
@@ -52,10 +56,11 @@ class Logger:
                 oldest_file_handle.close()
             self.m_fileHandles[src] = open(f"{self.m_path}/{src}.log", 'a', encoding="utf-8")
         
-        fileHandler = self.m_fileHandles[src]
-        fileHandler.write(logout)
-        fileHandler.flush()
-        os.fsync(fileHandler.fileno())
+        if self.m_persist:
+            fileHandler = self.m_fileHandles[src]
+            fileHandler.write(logout)
+            fileHandler.flush()
+            os.fsync(fileHandler.fileno())
         print(logout, end="")
 
 
