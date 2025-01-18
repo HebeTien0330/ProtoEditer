@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/16 14:48:41
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/17 17:25:59
+:@LastEditTime: 2025/1/18 10:56:25
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -23,6 +23,14 @@ class ProtoWriter:
         self.m_protos[fileName] = protoData
         self.m_update[fileName] = False
         self.m_originPath[fileName] = path
+
+    def close(self, path):
+        fileName = getFileNameInPath(path)
+        if fileName not in self.m_protos:
+            return
+        del self.m_protos[fileName]
+        del self.m_update[fileName]
+        del self.m_originPath[fileName]
 
     def add(self, delta):
         fileName = delta.get("fileName")

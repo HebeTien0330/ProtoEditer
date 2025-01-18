@@ -2,16 +2,17 @@
 :@Author: tangchengqin
 :@Date: 2025/1/8 17:16:40
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/17 17:35:32
+:@LastEditTime: 2025/1/18 10:52:52
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
-from PyQt5.QtWidgets import QTreeView, QFileSystemModel, QFileDialog, QMainWindow
-from PyQt5.QtCore import QDir, QModelIndex, Qt
-from PyQt5.QtGui import QDragEnterEvent, QDropEvent
+from PyQt5.QtWidgets import QTreeView, QFileSystemModel, QFileDialog, QMainWindow, QMessageBox
+from PyQt5.QtCore import QDir, QModelIndex, Qt, QEvent, QObject
+from PyQt5.QtGui import QDragEnterEvent, QDropEvent, QKeyEvent
 from components.event import installEventSystem
 from components.utils import getFileNameInPath
 from components.cache import package, save, update, query, unpack
+import os
 
 class CustomFileSystemModel(QFileSystemModel):
 
@@ -25,6 +26,25 @@ class CustomFileSystemModel(QFileSystemModel):
         if flags & Qt.ItemIsEditable:
             flags &= ~Qt.ItemIsEditable
         return flags
+
+
+class FileSystemEventFilter(QObject):
+
+
+    def __init__(self, file_system, tree_view, parent=None):
+        super().__init__(parent)
+        self.file_system = file_system
+        self.tree_view = tree_view
+
+    def eventFilter(self, obj, event):
+        if obj == self.tree_view and event.type() == QEvent.KeyPress:
+            key_event = QKeyEvent(event)
+            if key_event.key() == Qt.Key_Delete:
+                selected_index = self.tree_view.currentIndex()
+                if selected_index.isValid():
+                    self.file_system.deleteFile(selected_index)
+                return True
+        return super().eventFilter(obj, event)
 
 
 class FileSystem:
@@ -56,6 +76,8 @@ class FileSystem:
         self.listen("onOpenFile", self.onOpenFile)
 
         self.m_treeView.doubleClicked.connect(self.onFileDoubleClicked)
+        self.event_filter = FileSystemEventFilter(self, self.m_treeView)
+        self.m_treeView.installEventFilter(self.event_filter)
         self.afterInit()
 
     def save(self):
@@ -123,3 +145,22 @@ class FileSystem:
     def newFile(self, filePath):
         self.onEvent("onNewFile", None, filePath)
         self.displayFile(filePath)
+
+    def deleteFile(self, index: QModelIndex):
+        filePath = self.m_model.filePath(index)
+        if not filePath:
+            QMessageBox.warning(self.m_window, "Warning", "file not found")
+            return
+        os.remove(filePath)
+        self.m_model.removeRow(index.row(), index.parent())
+        self.onEvent("onDeleteFile", None, filePath)
+
+    def eventFilter(self, obj, event):
+        if obj == self.m_treeView and event.type() == QEvent.KeyPress:
+            key_event = QKeyEvent(event)
+            if key_event.key() == Qt.Key_Delete:
+                selected_index = self.m_treeView.currentIndex()
+                if selected_index.isValid():
+                    self.deleteFile(selected_index)
+                return True
+        return super().eventFilter(obj, event)

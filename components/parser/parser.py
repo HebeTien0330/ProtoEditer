@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/13 20:39:58
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/17 17:36:35
+:@LastEditTime: 2025/1/18 11:34:55
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -26,9 +26,8 @@ class Parser:
         self.m_index = 1001
         self.m_protos = {}
         self.m_protoWriter = ProtoWriter()
-        self.load()
         installEventSystem(self)
-        self.listen("onSave", self.save)
+        self.listen("onDeleteFile", self.onDeleteFile)
         self.listen("onNewFile", self.onNewFile)
         self.listen("onAddProto", self.onAddProto)
         self.listen("onAddProtoRoot", self.onAddProtoRoot)
@@ -37,23 +36,6 @@ class Parser:
         self.listen("onDeleteProtoRoot", self.onDeleteProtoRoot)
         self.listen("onSwapProto", self.onSwapProto)
         self.listen("onSwapProtoRoot", self.onSwapProtoRoot)
-
-    def save(self):
-        data = {
-            "index": self.m_index,
-            "protos": self.m_protos
-        }
-        saveObj = package(data)
-        update("parser", saveObj)
-        save()
-
-    def load(self):
-        saveObj = query("parser")
-        if not saveObj:
-            return
-        data: dict = unpack(saveObj)
-        self.m_index = data.get("index", 1001)
-        self.m_protos = data.get("protos", {})
 
     def splitUppercase(target):
         # 使用正则表达式找到所有大写字母及其前面的部分
@@ -117,6 +99,13 @@ class Parser:
     def onNewFile(self, filePath):
         context = self.m_protoWriter.createEmptyFile(filePath)
         self.parser(filePath, context)
+
+    def onDeleteFile(self, filePath):
+        fileName = getFileNameInPath(filePath)
+        if not fileName:
+            return
+        self.m_protos.pop(fileName, None)
+        self.m_protoWriter.close(fileName)
 
     def onAddProto(self, delta):
         fileName = delta.get("fileName")

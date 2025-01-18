@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/11 12:18:58
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/17 17:42:07
+:@LastEditTime: 2025/1/18 11:29:46
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -57,6 +57,7 @@ class ViewsManager:
         installEventSystem(self)
         self.listen("onSave", self.save)
         self.listen("onRefreshViews", self.refreshCurrentView)
+        self.listen("onDeleteFile", self.deleteFile)
         self.load()
 
     def save(self):
@@ -76,16 +77,21 @@ class ViewsManager:
         for tab in tabsInfo:
             self.createView(tab['path'], tab['content'])
 
+    def getIndexByFileName(self, fileName):
+        fileNames = list(self.m_pathMap.keys())
+        if fileName not in fileNames:
+            return -1
+        return fileNames.index(fileName)
+
     def createView(self, path, content):
         if not os.path.exists(path):
+            print("file not exists")
             return 
         fileName = getFileNameInPath(path)
-        print("createView::", fileName)
         # 检查文件是否已经打开
         if fileName in self.m_graphMap:
             self.swapView(fileName)
             return
-
         graphPage = GraphPage(self.m_window)
         graphWidget = graphPage.m_tab
         index = self.m_tabs.addTab(graphWidget, fileName)
@@ -115,7 +121,9 @@ class ViewsManager:
         graphPage.update(fileName, protos)
 
     def swapView(self, fileName):
-        index = list(self.m_pathMap.keys()).index(fileName)
+        index = self.getIndexByFileName(fileName)
+        if index < 0:
+            return
         self.m_tabs.setCurrentIndex(index)
 
     def onTabChanged(self, index):
@@ -125,15 +133,21 @@ class ViewsManager:
         self.updateView(fileName)
 
     def getCurrentTabContent(self, path):
+        if not os.path.exists(path):
+            return ""
         with open(path, 'r', encoding='utf-8') as file:
             content = file.read()
         return content
 
     def onTabClose(self, index):
+        fileName = self.m_tabs.tabText(index)
         self.m_tabs.removeTab(index)
+        del self.m_pathMap[fileName]
+        del self.m_graphMap[fileName]
         if self.m_tabs.count() > 0:
             return
         self.m_viewPage.update("")
+        self.save()
 
     def refreshCurrentView(self, mode="all"):
         currentIndex = self.m_tabs.currentIndex()
@@ -144,3 +158,10 @@ class ViewsManager:
         if not path:
             return  # 路径不存在
         self.updateView(fileName, mode)
+
+    def deleteFile(self, filePath):
+        fileName = getFileNameInPath(filePath)
+        index = self.getIndexByFileName(fileName)
+        if index < 0:
+            return
+        self.onTabClose(index)
