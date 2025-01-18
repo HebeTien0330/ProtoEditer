@@ -2,12 +2,13 @@
 :@Author: tangchengqin
 :@Date: 2025/1/18 11:44:35
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/18 14:03:32
+:@LastEditTime: 2025/1/18 14:33:12
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
 from PyQt5.QtWidgets import QFileDialog, QPushButton, QVBoxLayout, QHBoxLayout, QComboBox
 from PyQt5.QtWidgets import QDialog, QLineEdit, QLabel, QSpacerItem, QSizePolicy
+from .exporter import Exporter
 import os
 
 class ExportManager:
@@ -40,7 +41,7 @@ class ExportManager:
         # 添加导出和取消按钮
         btnLayout = QHBoxLayout()
         btnExport = QPushButton("Export", dialog)
-        btnExport.clicked.connect(lambda: self.doExport(self.m_exportPath))
+        btnExport.clicked.connect(self.doExport)
         btnCancel = QPushButton("Cancel", dialog)
         btnCancel.clicked.connect(dialog.reject)
         btnLayout.addWidget(btnExport)
@@ -131,12 +132,17 @@ class ExportManager:
         if not scriptPath:
             return
         self.m_exportScript = scriptPath
-        self.script_line_edit.setText(self.m_exportScript)
         print("Selected Export Script:", self.m_exportScript)
 
     def onScriptComboBoxChanged(self, index):
         self.m_exportScript = self.m_scriptCombo.itemText(index)
         print("Selected Export Script:", self.m_exportScript)
 
-    def doExport(self, exportPath):
-        print("Do export:", exportPath)
+    def doExport(self):
+        data = {
+            "exportTarget": self.m_exportFolder,
+            "exportPath": self.m_exportPath,
+            "exportScript": self.m_exportScript
+        }
+        exporter = Exporter(data)
+        exporter.run()
