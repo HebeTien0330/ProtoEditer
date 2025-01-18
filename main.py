@@ -15,6 +15,7 @@ from src.menuBar import ManuBarManager
 from src.fileSystem import FileSystem, NewFileDialog
 from src.viewSystem import ViewsManager
 from src.newProject import NewProjectDialog
+from src.exportSystem import ExportManager
 import sys
 
 class MainWindow(QMainWindow):
@@ -40,6 +41,9 @@ class MainWindow(QMainWindow):
         self.m_splitter.addWidget(self.m_fileSystem.m_treeView)
         self.m_splitter.addWidget(self.mainContent)
         self.setCentralWidget(self.m_splitter)
+
+        # 创建导出管理器
+        self.m_exportManager = ExportManager(self)
 
         totalSize = self.size().width()
         self.m_splitter.setSizes([int(totalSize * 0.2), int(totalSize * 0.8)])
@@ -134,7 +138,7 @@ class MainWindow(QMainWindow):
         QMessageBox.information(self, "保存(S)", "保存文件")
 
     def export(self):
-        pass
+        self.m_exportManager.createExportDialog()
 
     def getViewsManager(self):
         return self.m_viewsManager
