@@ -102,7 +102,11 @@ class ViewsManager:
         self.m_viewPage.update(content)
 
         parser = getParser()
-        protos = parser.parser(path, content)
+        protos = {}
+        try:
+            protos = parser.parser(path, content)
+        except Exception as e:
+            pass
         graphPage.update(fileName, protos)
 
         self.m_graphMap[fileName] = graphPage
