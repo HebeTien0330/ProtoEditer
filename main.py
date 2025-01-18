@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/8 16:39:30
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/17 17:14:12
+:@LastEditTime: 2025/1/18 14:19:29
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -52,6 +52,7 @@ class MainWindow(QMainWindow):
         self.m_viewsManager = ViewsManager(self)
 
         installEventSystem(self)
+        getLogger().setPersist(False)       # 设置日志是否持久化
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_S and event.modifiers() == Qt.ControlModifier:
