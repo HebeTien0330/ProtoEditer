@@ -53,8 +53,8 @@ class Parser:
         if not saveObj:
             return
         data: dict = unpack(saveObj)
-        self.m_index = data.get("index", 1001)
-        self.m_protos = data.get("protos", {})
+        # self.m_index = data.get("index", 1001)
+        # self.m_protos = data.get("protos", {})
 
     def splitUppercase(target):
         # 使用正则表达式找到所有大写字母及其前面的部分

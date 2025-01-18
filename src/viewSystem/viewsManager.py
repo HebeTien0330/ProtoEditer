@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/11 12:18:58
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/18 10:52:48
+:@LastEditTime: 2025/1/18 11:29:46
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -85,13 +85,13 @@ class ViewsManager:
 
     def createView(self, path, content):
         if not os.path.exists(path):
+            print("file not exists")
             return 
         fileName = getFileNameInPath(path)
         # 检查文件是否已经打开
         if fileName in self.m_graphMap:
             self.swapView(fileName)
             return
-
         graphPage = GraphPage(self.m_window)
         graphWidget = graphPage.m_tab
         index = self.m_tabs.addTab(graphWidget, fileName)
@@ -133,15 +133,21 @@ class ViewsManager:
         self.updateView(fileName)
 
     def getCurrentTabContent(self, path):
+        if not os.path.exists(path):
+            return ""
         with open(path, 'r', encoding='utf-8') as file:
             content = file.read()
         return content
 
     def onTabClose(self, index):
+        fileName = self.m_tabs.tabText(index)
         self.m_tabs.removeTab(index)
+        del self.m_pathMap[fileName]
+        del self.m_graphMap[fileName]
         if self.m_tabs.count() > 0:
             return
         self.m_viewPage.update("")
+        self.save()
 
     def refreshCurrentView(self, mode="all"):
         currentIndex = self.m_tabs.currentIndex()
@@ -159,4 +165,3 @@ class ViewsManager:
         if index < 0:
             return
         self.onTabClose(index)
-        del self.m_graphMap[fileName]
