@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/13 20:39:58
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/17 17:36:35
+:@LastEditTime: 2025/1/18 10:56:54
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -29,6 +29,7 @@ class Parser:
         self.load()
         installEventSystem(self)
         self.listen("onSave", self.save)
+        self.listen("onDeleteFile", self.onDeleteFile)
         self.listen("onNewFile", self.onNewFile)
         self.listen("onAddProto", self.onAddProto)
         self.listen("onAddProtoRoot", self.onAddProtoRoot)
@@ -117,6 +118,14 @@ class Parser:
     def onNewFile(self, filePath):
         context = self.m_protoWriter.createEmptyFile(filePath)
         self.parser(filePath, context)
+
+    def onDeleteFile(self, filePath):
+        fileName = getFileNameInPath(filePath)
+        if not fileName:
+            return
+        self.m_protos.pop(fileName, None)
+        self.m_protoWriter.close(fileName)
+        self.save()
 
     def onAddProto(self, delta):
         fileName = delta.get("fileName")

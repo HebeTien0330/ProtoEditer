@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/8 17:16:40
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/17 17:35:32
+:@LastEditTime: 2025/1/18 10:52:52
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -153,6 +153,7 @@ class FileSystem:
             return
         os.remove(filePath)
         self.m_model.removeRow(index.row(), index.parent())
+        self.onEvent("onDeleteFile", None, filePath)
 
     def eventFilter(self, obj, event):
         if obj == self.m_treeView and event.type() == QEvent.KeyPress:
