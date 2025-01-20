@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package protocol.heartbeat;
+
+option go_package = "/message";
+
+message C2SHeartbeat {
+  int32 no = 1;
+  string timestamp = 2;
+}
+
+message S2CHeartbeat {
+  int32 no = 1;
+  int32 code = 2;
+}

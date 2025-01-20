@@ -1,0 +1,9 @@
+{
+    "c2s_gm": "C2SGm",
+    "c2s_heartbeat": "C2SHeartbeat",
+    "c2s_query_leaderboard": "C2SQueryLeaderboard",
+    "c2s_query_server_list": "C2SQueryServerList",
+    "c2s_login": "C2SLogin",
+    "c2s_query_player_data": "C2SQueryPlayerData",
+    "c2s_query_player_basic": "C2SQueryPlayerBasic"
+}

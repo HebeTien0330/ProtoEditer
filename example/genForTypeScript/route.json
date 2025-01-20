@@ -1,0 +1,44 @@
+{
+    "C2SGm": {
+        "seqt": 1001,
+        "seqr": 1002,
+        "sType": "c2s_gm",
+        "rType": "s2c_gm"
+    },
+    "C2SHeartbeat": {
+        "seqt": 1003,
+        "seqr": 1004,
+        "sType": "c2s_heartbeat",
+        "rType": "s2c_heartbeat"
+    },
+    "C2SQueryLeaderboard": {
+        "seqt": 1005,
+        "seqr": 1006,
+        "sType": "c2s_query_leaderboard",
+        "rType": "s2c_query_leaderboard"
+    },
+    "C2SQueryServerList": {
+        "seqt": 1007,
+        "seqr": 1008,
+        "sType": "c2s_query_server_list",
+        "rType": "s2c_query_server_list"
+    },
+    "C2SLogin": {
+        "seqt": 1009,
+        "seqr": 1010,
+        "sType": "c2s_login",
+        "rType": "s2c_login"
+    },
+    "C2SQueryPlayerData": {
+        "seqt": 1011,
+        "seqr": 1012,
+        "sType": "c2s_query_player_data",
+        "rType": "s2c_query_player_data"
+    },
+    "C2SQueryPlayerBasic": {
+        "seqt": 1013,
+        "seqr": 1014,
+        "sType": "c2s_query_player_basic",
+        "rType": "s2c_query_player_basic"
+    }
+}

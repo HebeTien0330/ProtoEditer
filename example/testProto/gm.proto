@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package protocol.gm;
+
+option go_package = "/message";
+
+message C2SGm {
+  int32 no = 1;
+  string userId = 2;
+  string cmd = 3;
+  map<string, string> args = 4;
+}
+
+message S2CGm {
+  int32 no = 1;
+  int32 code = 2;
+  string result = 3;
+  string remote = 4;
+}

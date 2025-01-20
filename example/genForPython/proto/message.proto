@@ -1,0 +1,31 @@
+
+syntax = "proto3";
+
+package protocol;
+
+import "gm.proto";
+import "heartbeat.proto";
+import "leaderboard.proto";
+import "login.proto";
+import "query.proto";
+
+
+message MessageWrapper {
+    oneof payload {
+		protocol.gm.C2SGm c2s_gm = 1001;
+		protocol.gm.S2CGm s2c_gm = 1002;
+		protocol.heartbeat.C2SHeartbeat c2s_heartbeat = 1003;
+		protocol.heartbeat.S2CHeartbeat s2c_heartbeat = 1004;
+		protocol.leaderboard.C2SQueryLeaderboard c2s_query_leaderboard = 1005;
+		protocol.leaderboard.S2CQueryLeaderboard s2c_query_leaderboard = 1006;
+		protocol.login.C2SQueryServerList c2s_query_server_list = 1007;
+		protocol.login.S2CQueryServerList s2c_query_server_list = 1008;
+		protocol.login.C2SLogin c2s_login = 1009;
+		protocol.login.S2CLogin s2c_login = 1010;
+		protocol.query.C2SQueryPlayerData c2s_query_player_data = 1011;
+		protocol.query.S2CQueryPlayerData s2c_query_player_data = 1012;
+		protocol.query.C2SQueryPlayerBasic c2s_query_player_basic = 1013;
+		protocol.query.S2CQueryPlayerBasic s2c_query_player_basic = 1014;
+
+    }
+}
