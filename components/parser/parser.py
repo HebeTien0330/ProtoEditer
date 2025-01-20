@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/13 20:39:58
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/18 14:21:04
+:@LastEditTime: 2025/1/20 10:04:43
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -35,6 +35,11 @@ class Parser:
         self.listen("onDeleteProtoRoot", self.onDeleteProtoRoot)
         self.listen("onSwapProto", self.onSwapProto)
         self.listen("onSwapProtoRoot", self.onSwapProtoRoot)
+
+    def reset(self):
+        self.m_index = 1001
+        self.m_protos = {}
+        self.m_protoWriter.reset()
 
     def splitUppercase(target):
         # 使用正则表达式找到所有大写字母及其前面的部分

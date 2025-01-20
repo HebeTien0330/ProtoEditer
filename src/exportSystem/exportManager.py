@@ -2,12 +2,13 @@
 :@Author: tangchengqin
 :@Date: 2025/1/18 11:44:35
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/18 14:33:12
+:@LastEditTime: 2025/1/20 14:18:09
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
 from PyQt5.QtWidgets import QFileDialog, QPushButton, QVBoxLayout, QHBoxLayout, QComboBox
 from PyQt5.QtWidgets import QDialog, QLineEdit, QLabel, QSpacerItem, QSizePolicy
+from components.cache import query, unpack
 from .exporter import Exporter
 import os
 
@@ -18,9 +19,16 @@ class ExportManager:
         defaultPath = os.getcwd()
         self.m_exportFolder = defaultPath
         self.m_exportPath = defaultPath
-        self.m_exportScript = defaultPath
+        self.m_exportScript = None
 
     def createExportDialog(self):
+        defaultTarget = query("rootPath")
+        if defaultTarget:
+            defaultPath = unpack(defaultTarget)
+            self.m_exportFolder = defaultPath
+        defaultRes = os.getcwd() + r"\example"
+        if os.path.exists(defaultRes):
+            self.m_exportPath = defaultRes
         dialog = QDialog(self.m_window)
         dialog.setWindowTitle("Export Options")
         dialog.resize(500, 200)
@@ -53,7 +61,7 @@ class ExportManager:
     def createExportFolder(self, dialog):
         # 按钮和路径显示框：选择目标导出文件夹
         folderLayout = QVBoxLayout()
-        folderLabel = QLabel("Select Export Folder:", dialog)
+        folderLabel = QLabel("Select Export Target:", dialog)
         folderLayout.addWidget(folderLabel)
         folderEditLayout = QHBoxLayout()
         self.m_folderEdit = QLineEdit(self.m_exportFolder, dialog)
@@ -109,8 +117,9 @@ class ExportManager:
             self.m_scriptCombo.addItem(filePath)
 
     def chooseExportFolder(self):
-        defaultPath = os.getcwd()
-        exportPath = QFileDialog.getExistingDirectory(self.m_window, "Choose Export Folder", defaultPath)
+        rootPath = query("rootPath")
+        defaultPath = unpack(rootPath)
+        exportPath = QFileDialog.getExistingDirectory(self.m_window, "Choose Export Target", defaultPath)
         if not exportPath:
             return
         self.m_exportFolder = exportPath
@@ -119,7 +128,7 @@ class ExportManager:
 
     def chooseExportPath(self):
         defaultPath = os.getcwd()
-        exportPath, _ = QFileDialog.getSaveFileName(self.m_window, "Choose Export Path", defaultPath)
+        exportPath, _ = QFileDialog.getExistingDirectory(self.m_window, "Choose Export Path", defaultPath)
         if not exportPath:
             return
         self.m_exportPath = exportPath
@@ -135,7 +144,8 @@ class ExportManager:
         print("Selected Export Script:", self.m_exportScript)
 
     def onScriptComboBoxChanged(self, index):
-        self.m_exportScript = self.m_scriptCombo.itemText(index)
+        scriptPath = self.m_scriptCombo.itemText(index)
+        self.m_exportScript = scriptPath
         print("Selected Export Script:", self.m_exportScript)
 
     def doExport(self):
