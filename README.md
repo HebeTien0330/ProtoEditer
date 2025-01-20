@@ -1,2 +1,79 @@
-# ProtoEditer
-A graphical protocol editor
+# 协议编辑器 (ProtoEditer)
+
+### 简介
+
+协议编辑器（ProtoEditer）是一个基于Python和PyQt5开发的图形化工具，旨在简化Protocol Buffers（protobuf）协议的创建、编辑与管理。它支持自定义导出脚本，允许用户根据需求生成特定格式的输出文件。
+
+[![ProtoEditer](https://img.picgo.net/2025/01/20/ProtoEditer4e8fb927f1da01d7.md.png)](https://www.picgo.net/image/ProtoEditer.Wh7vIb)
+
+### 功能特性
+
+- **图形化界面**：直观易用的用户界面，方便进行协议字段的添加、修改与删除。
+- **项目管理**：支持新建、打开和保存项目，便于管理和组织多个协议文件。
+- **文件系统集成**：内置文件浏览器，方便在项目中浏览和操作文件。
+- **自定义导出**：提供灵活的导出功能，用户可以编写自定义脚本来满足特定的导出需求。
+- **事件系统**：内置事件处理机制，支持插件扩展和功能定制。
+- **日志记录**：详细的日志记录功能，帮助开发者追踪操作历史和排查问题。
+
+---
+
+# 安装与运行
+
+### 环境准备
+
+确保已安装以下依赖：
+- Python 3.8 或更高版本
+- PyQt5 (pip install pyqt5)
+- 其他依赖库（如需更多依赖，请参考requirements.txt）
+
+### 运行项目
+
+1、克隆仓库：
+
+```bash
+git clone https://github.com/your-repo/protoediter.git
+```
+
+2、启动应用程序：
+
+```bash
+python main.py
+```
+
+---
+
+# 使用说明
+
+#### 新建项目
+- 点击菜单栏中的“文件(F)” -> “新建项目 (New Project)”，按照提示输入项目名称、保存路径和日志路径，完成项目的创建。
+- 或将文件夹拖拽到左侧文件栏，自动创建项目
+
+#### 打开项目
+- 选择“文件(F)” -> “打开项目 (Open Project)”，从本地文件系统中选择一个已有项目进行加载。
+
+#### 新建文件
+- 通过“文件(F)” -> “新建文件 (New File)”选项，在当前项目中创建新的协议文件。
+
+#### 保存文件
+- 使用快捷键Ctrl+S或选择“文件(F)” -> “保存 (Save)”来保存当前编辑的内容。
+
+#### 导出
+- 选择“文件(F)” -> “导出 (Export)”，根据需要配置并执行自定义导出脚本。
+
+#### 使用例子
+- 参考example文件夹和custom中的示例代码。
+
+---
+
+# 贡献指南
+
+欢迎任何有兴趣的朋友为项目贡献代码或提出改进建议。具体步骤如下：
+> 1、Fork 本仓库至个人账户。<br>
+> 2、创建新分支 (git checkout -b feature/YourFeature)。<br>
+> 3、提交更改并推送至远程仓库 (git push origin feature/YourFeature)。<br>
+> 4、提交Pull Request。<br>
+
+# 许可证
+
+本项目采用MIT许可证，详情请参阅LICENSE文件。<br>
+感谢您的关注和支持！如果您有任何问题或建议，请随时联系作者或提交Issue。
