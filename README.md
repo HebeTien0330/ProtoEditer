@@ -68,10 +68,10 @@ python main.py
 # 贡献指南
 
 欢迎任何有兴趣的朋友为项目贡献代码或提出改进建议。具体步骤如下：
-1、Fork 本仓库至个人账户。
-2、创建新分支 (git checkout -b feature/YourFeature)。
-3、提交更改并推送至远程仓库 (git push origin feature/YourFeature)。
-4、提交Pull Request。
+> 1、Fork 本仓库至个人账户。
+> 2、创建新分支 (git checkout -b feature/YourFeature)。
+> 3、提交更改并推送至远程仓库 (git push origin feature/YourFeature)。
+> 4、提交Pull Request。
 
 # 许可证
 
