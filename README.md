@@ -21,8 +21,7 @@
 
 ### 环境准备
 
-    确保已安装以下依赖：
-
+确保已安装以下依赖：
 - Python 3.8 或更高版本
 - PyQt5 (pip install pyqt5)
 - 其他依赖库（如需更多依赖，请参考requirements.txt）
