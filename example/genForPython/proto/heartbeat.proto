@@ -1,0 +1,14 @@
+
+syntax = "proto3";
+
+package protocol.heartbeat;
+
+message C2SHeartbeat {
+  int32 no = 1;
+  string timestamp = 2;
+}
+
+message S2CHeartbeat {
+  int32 no = 1;
+  int32 code = 2;
+}

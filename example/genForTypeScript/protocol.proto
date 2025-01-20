@@ -1,0 +1,112 @@
+syntax = "proto3";
+
+package protocol;
+    
+message MessageWrapper {
+  oneof payload {
+    C2SGm c2s_gm = 1001;
+    S2CGm s2c_gm = 1002;
+    C2SHeartbeat c2s_heartbeat = 1003;
+    S2CHeartbeat s2c_heartbeat = 1004;
+    C2SQueryLeaderboard c2s_query_leaderboard = 1005;
+    S2CQueryLeaderboard s2c_query_leaderboard = 1006;
+    C2SQueryServerList c2s_query_server_list = 1007;
+    S2CQueryServerList s2c_query_server_list = 1008;
+    C2SLogin c2s_login = 1009;
+    S2CLogin s2c_login = 1010;
+    C2SQueryPlayerData c2s_query_player_data = 1011;
+    S2CQueryPlayerData s2c_query_player_data = 1012;
+    C2SQueryPlayerBasic c2s_query_player_basic = 1013;
+    S2CQueryPlayerBasic s2c_query_player_basic = 1014;
+  }
+}
+    
+    
+// =========================gm=========================
+message C2SGm {
+int32 no = 1;
+string userId = 2;
+string cmd = 3;
+map<string, string> args = 4;
+}
+
+message S2CGm {
+int32 no = 1;
+int32 code = 2;
+string result = 3;
+string remote = 4;
+}
+
+// =========================heartbeat=========================
+message C2SHeartbeat {
+int32 no = 1;
+string timestamp = 2;
+}
+
+message S2CHeartbeat {
+int32 no = 1;
+int32 code = 2;
+}
+
+// =========================leaderboard=========================
+message C2SQueryLeaderboard {
+int32 no = 1;
+string userId = 2;
+string name = 3;
+int32 from = 4;
+int32 to = 5;
+}
+
+message S2CQueryLeaderboard {
+int32 no = 1;
+int32 code = 2;
+string data = 3;
+}
+
+// =========================login=========================
+message C2SQueryServerList {
+int32 no = 1;
+}
+
+message S2CQueryServerList {
+int32 no = 1;
+int32 code = 2;
+string data = 3;
+}
+
+message C2SLogin {
+int32 no = 1;
+string userId = 2;
+string serverId = 3;
+}
+
+message S2CLogin {
+int32 no = 1;
+int32 code = 2;
+string userId = 3;
+}
+
+// =========================query=========================
+message C2SQueryPlayerData {
+int32 no = 1;
+string userId = 2;
+}
+
+message S2CQueryPlayerData {
+int32 no = 1;
+int32 code = 2;
+map<string, string> data = 3;
+string remote = 4;
+}
+
+message C2SQueryPlayerBasic {
+int32 no = 1;
+repeated string users = 2;
+}
+
+message S2CQueryPlayerBasic {
+int32 no = 1;
+int32 code = 2;
+string data = 3;
+string remote = 4;
+}

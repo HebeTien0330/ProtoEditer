@@ -1,0 +1,28 @@
+
+syntax = "proto3";
+
+package protocol.login;
+
+option go_package = "/message";
+
+message C2SQueryServerList {
+  int32 no = 1;
+}
+
+message S2CQueryServerList {
+  int32 no = 1;
+  int32 code = 2;
+  string data = 3;
+}
+
+message C2SLogin {
+  int32 no = 1;
+  string userId = 2;
+  string serverId = 3;
+}
+
+message S2CLogin {
+  int32 no = 1;
+  int32 code = 2;
+  string userId = 3;
+}

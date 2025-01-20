@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package protocol.leaderboard;
+
+option go_package = "/message";
+
+message C2SQueryLeaderboard {
+  int32 no = 1;
+  string userId = 2;
+  string name = 3;
+  int32 from = 4;
+  int32 to = 5;
+}
+
+message S2CQueryLeaderboard {
+  int32 no = 1;
+  int32 code = 2;
+  string data = 3;
+}
