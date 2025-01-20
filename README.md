@@ -31,7 +31,7 @@
 1、克隆仓库：
 
 ```bash
-git clone https://github.com/your-repo/protoediter.git
+git clone git@github.com:HebeTien0330/ProtoEditer.git
 ```
 
 2、启动应用程序：
