@@ -2,7 +2,7 @@
 :@Author: tangchengqin
 :@Date: 2025/1/16 14:48:41
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/18 10:56:25
+:@LastEditTime: 2025/1/20 10:04:40
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
@@ -17,6 +17,11 @@ class ProtoWriter:
         self.m_originPath = {}
         installEventSystem(self)
         self.listen("onSave", self.write)
+
+    def reset(self):
+        self.m_protos = {}
+        self.m_update = {}
+        self.m_originPath = {}
 
     def open(self, path, protoData):
         fileName = getFileNameInPath(path)
