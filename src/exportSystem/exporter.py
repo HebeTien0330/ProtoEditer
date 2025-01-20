@@ -2,13 +2,12 @@
 :@Author: tangchengqin
 :@Date: 2025/1/18 14:34:31
 :@LastEditors: tangchengqin
-:@LastEditTime: 2025/1/20 15:58:27
+:@LastEditTime: 2025/1/20 16:27:20
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
 from components.parser import getParser
 import importlib.util
-import sys
 import os
 
 class Exporter:
