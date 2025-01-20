@@ -4,7 +4,7 @@
 
 协议编辑器（ProtoEditer）是一个基于Python和PyQt5开发的图形化工具，旨在简化Protocol Buffers（protobuf）协议的创建、编辑与管理。它支持自定义导出脚本，允许用户根据需求生成特定格式的输出文件。
 
-[![ProtoEditer](https://img.picgo.net/2025/01/20/ProtoEditer4e8fb927f1da01d7.md.png)](https://www.picgo.net/image/ProtoEditer.Wh7vIb)
+![ProtoEditer](https://img.picgo.net/2025/01/20/ProtoEditer4e8fb927f1da01d7.png)
 
 ### 功能特性
 
@@ -31,7 +31,7 @@
 1、克隆仓库：
 
 ```bash
-git clone https://github.com/your-repo/protoediter.git
+git clone git@github.com:HebeTien0330/ProtoEditer.git
 ```
 
 2、启动应用程序：
