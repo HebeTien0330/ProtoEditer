@@ -7,3 +7,4 @@
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
 from .viewsManager import ViewsManager
+from .welcomePage import WelcomePage

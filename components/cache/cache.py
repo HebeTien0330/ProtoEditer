@@ -74,8 +74,22 @@ def setCachePath(path):
     cache = getCache()
     if not cache:
         return
+    folder = os.path.dirname(path)
+    if folder and not os.path.exists(folder):
+        os.makedirs(folder)
     cache.m_cachePath = path
     cache.save()
+
+def beginProjectCache(path):
+    cache = getCache()
+    if not cache:
+        return
+    folder = os.path.dirname(path)
+    if folder and not os.path.exists(folder):
+        os.makedirs(folder)
+    cache.m_data = {}
+    cache.m_cachePath = path
+    cache.m_dirty = 1
 
 def save():
     cache = getCache()

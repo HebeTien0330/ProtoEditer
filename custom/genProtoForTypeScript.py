@@ -6,11 +6,10 @@
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
-from components.utils import splitUppercase, checkOS
+from components.utils import splitUppercase, runCommand
 from custom.customBase import CustomBase
 import os
 import json
-import subprocess
 
 class CustomScript(CustomBase):
     """
@@ -18,7 +17,7 @@ class CustomScript(CustomBase):
     """
     def __init__(self, targetDir):
         super().__init__(targetDir)
-        finalPath =  f"{self.m_targetDir}\\genForTypeScript"
+        finalPath = os.path.join(self.m_targetDir, "genForTypeScript")
         if not os.path.exists(finalPath):
             os.makedirs(finalPath)
         self.m_targetDir = finalPath
@@ -38,7 +37,7 @@ class CustomScript(CustomBase):
                     "sType": "c2s" + "_" + "_".join(map(lambda x: x.lower(), splitUppercase(protocol[3:]))),
                     "rType": "s2c" + "_" + "_".join(map(lambda x: x.lower(), splitUppercase(protocol[3:]))),
                 }
-        with open(f"{self.m_targetDir}\\route.json", "w", encoding="utf-8") as file:
+        with open(os.path.join(self.m_targetDir, "route.json"), "w", encoding="utf-8") as file:
             file.write(json.dumps(route, indent=4, ensure_ascii=False))
         self.log("create proto route finish")
 
@@ -94,14 +93,13 @@ message MessageWrapper {
 
     def genCode(self):
         self.log("start creating code...")
-        curOs = checkOS()
-        if curOs == "Windows":
-            command = f"pbjs {self.m_targetDir}\protocol.proto --ts {self.m_targetDir}\protocol.ts"
-            subprocess.run(['powershell', '-Command', command], capture_output=True, text=True)
-            return
-        if curOs == "Linux":
-            command = f"pbjs {self.m_targetDir}\protocol.proto --ts {self.m_targetDir}\code\protocol.ts"
-            subprocess.run([command], capture_output=True, text=True)
+        protoFile = os.path.join(self.m_targetDir, "protocol.proto")
+        outFile = os.path.join(self.m_targetDir, "protocol.ts")
+        ok, message = runCommand(["pbjs", protoFile, "--ts", outFile])
+        if not ok:
+            detail = message or "未找到 pbjs，TypeScript 代码生成已跳过。proto 与 route.json 已经写出。"
+            self.log(detail)
+            raise RuntimeError(detail)
         self.log("create code finish...")
 
     def run(self, protosData):

@@ -56,8 +56,10 @@ class FileSystem:
         self.m_model.setReadOnly(True)
         self.m_treeView = QTreeView()
         self.m_treeView.setModel(self.m_model)
-        self.m_treeView.setRootIndex(self.m_model.index(QDir.rootPath()))
-        self.m_treeView.setColumnWidth(0, 250)
+        self.m_treeView.setHeaderHidden(True)
+        self.m_treeView.setAnimated(True)
+        self.m_treeView.setIndentation(16)
+        self.m_treeView.setMinimumWidth(240)
         self.m_window.setCentralWidget(self.m_treeView)
 
         for col in range(1, self.m_model.columnCount()):      # 隐藏所有列，只显示文件名
@@ -97,10 +99,11 @@ class FileSystem:
         self.m_data["path"] = path
         update("rootPath", package(path))
         self.save()
+        self.m_window.statusBar().showMessage(path)
 
     def afterInit(self):
         path = self.m_data.get("path")
-        if not path:
+        if not path or not os.path.isdir(path):
             return
         self.update(path)
 

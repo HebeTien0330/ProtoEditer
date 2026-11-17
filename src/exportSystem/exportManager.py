@@ -7,7 +7,8 @@
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
 from PyQt5.QtWidgets import QFileDialog, QPushButton, QVBoxLayout, QHBoxLayout, QComboBox
-from PyQt5.QtWidgets import QDialog, QLineEdit, QLabel, QSpacerItem, QSizePolicy, QTextEdit
+from PyQt5.QtWidgets import QDialog, QLineEdit, QLabel, QTextEdit
+from PyQt5.QtGui import QTextCursor
 from components.cache import query, unpack
 from components.event import installEventSystem
 from .exporter import Exporter
@@ -21,57 +22,62 @@ class ExportManager:
         self.m_exportFolder = defaultPath
         self.m_exportPath = defaultPath
         self.m_exportScript = None
+        self.m_logEdit = None
+        self.m_statusLabel = None
         installEventSystem(self)
+        self.listen("onAppendExportInfo", self.onAppendExportInfo)
 
     def createExportDialog(self):
         defaultTarget = query("rootPath")
         if defaultTarget:
-            defaultPath = unpack(defaultTarget)
-            self.m_exportFolder = defaultPath
-        defaultRes = os.getcwd() + r"\example"
-        if os.path.exists(defaultRes):
+            self.m_exportFolder = unpack(defaultTarget)
+        defaultRes = os.path.join(os.getcwd(), "example")
+        if os.path.isdir(defaultRes):
             self.m_exportPath = defaultRes
         dialog = QDialog(self.m_window)
         self.m_exportDialog = dialog
-        dialog.setWindowTitle("Export Options")
-        dialog.resize(500, 200)
-        layout = QVBoxLayout()
-        # 按钮和路径显示框：选择目标导出文件夹
-        folderLayout = self.createExportFolder(dialog)
-        layout.addLayout(folderLayout)
-        layout.addItem(QSpacerItem(20, 20, QSizePolicy.Minimum, QSizePolicy.Fixed))
-        # 按钮和路径显示框：选择导出路径
-        pathLayout = self.createExportPath(dialog)
-        layout.addLayout(pathLayout)
-        layout.addItem(QSpacerItem(20, 20, QSizePolicy.Minimum, QSizePolicy.Fixed))
-        # 按钮和路径显示框：选择导出脚本
-        scriptLayout = self.createExportScript(dialog)
-        layout.addLayout(scriptLayout)
+        dialog.setWindowTitle("导出")
+        dialog.resize(680, 520)
+        layout = QVBoxLayout(dialog)
+        layout.setContentsMargins(20, 18, 20, 18)
+        layout.setSpacing(12)
+        # 选择协议目录、导出目录和脚本
+        layout.addLayout(self.createExportFolder(dialog))
+        layout.addLayout(self.createExportPath(dialog))
+        layout.addLayout(self.createExportScript(dialog))
         self.populateScriptComboBox()
-        layout.addItem(QSpacerItem(30, 30, QSizePolicy.Minimum, QSizePolicy.Fixed))
-        # 添加导出和取消按钮
+
+        self.m_statusLabel = QLabel("选择目录和脚本后开始导出", dialog)
+        self.m_statusLabel.setObjectName("mutedLabel")
+        layout.addWidget(self.m_statusLabel)
+
+        self.m_logEdit = QTextEdit(dialog)
+        self.m_logEdit.setReadOnly(True)
+        self.m_logEdit.setPlaceholderText("导出日志会显示在这里")
+        layout.addWidget(self.m_logEdit, 1)
+
         btnLayout = QHBoxLayout()
-        btnExport = QPushButton("Export", dialog)
-        btnExport.clicked.connect(self.doExport)
-        btnCancel = QPushButton("Cancel", dialog)
-        btnCancel.clicked.connect(dialog.reject)
-        btnLayout.addWidget(btnExport)
-        btnLayout.addWidget(btnCancel)
+        btnLayout.addStretch(1)
+        self.m_btnExport = QPushButton("导出", dialog)
+        self.m_btnExport.setObjectName("primaryButton")
+        self.m_btnExport.clicked.connect(self.doExport)
+        btnClose = QPushButton("关闭", dialog)
+        btnClose.clicked.connect(dialog.reject)
+        btnLayout.addWidget(self.m_btnExport)
+        btnLayout.addWidget(btnClose)
         layout.addLayout(btnLayout)
-        dialog.setLayout(layout)
         dialog.exec_()
 
     def createExportFolder(self, dialog):
-        # 按钮和路径显示框：选择目标导出文件夹
         folderLayout = QVBoxLayout()
-        folderLabel = QLabel("Select Export Target:", dialog)
+        folderLayout.setSpacing(6)
+        folderLabel = QLabel("协议目录", dialog)
+        folderLabel.setObjectName("panelTitle")
         folderLayout.addWidget(folderLabel)
         folderEditLayout = QHBoxLayout()
         self.m_folderEdit = QLineEdit(self.m_exportFolder, dialog)
-        self.m_folderEdit.setFixedWidth(300)
-        folderEditLayout.addWidget(self.m_folderEdit)
-        btnFolder = QPushButton("Path", dialog)
-        btnFolder.setFixedWidth(150)
+        folderEditLayout.addWidget(self.m_folderEdit, 1)
+        btnFolder = QPushButton("浏览", dialog)
         btnFolder.clicked.connect(self.chooseExportFolder)
         folderEditLayout.addWidget(btnFolder)
         folderLayout.addLayout(folderEditLayout)
@@ -79,14 +85,14 @@ class ExportManager:
 
     def createExportPath(self, dialog):
         pathLayout = QVBoxLayout()
-        pathLabel = QLabel("Select Export Path:", dialog)
+        pathLayout.setSpacing(6)
+        pathLabel = QLabel("导出到", dialog)
+        pathLabel.setObjectName("panelTitle")
         pathLayout.addWidget(pathLabel)
         pathEditLayout = QHBoxLayout()
         self.m_pathEdit = QLineEdit(self.m_exportPath, dialog)
-        self.m_pathEdit.setFixedWidth(300)  # 设置固定宽度
-        pathEditLayout.addWidget(self.m_pathEdit)
-        btnPath = QPushButton("Path", dialog)
-        btnPath.setFixedWidth(150)  # 设置固定宽度
+        pathEditLayout.addWidget(self.m_pathEdit, 1)
+        btnPath = QPushButton("浏览", dialog)
         btnPath.clicked.connect(self.chooseExportPath)
         pathEditLayout.addWidget(btnPath)
         pathLayout.addLayout(pathEditLayout)
@@ -94,81 +100,66 @@ class ExportManager:
 
     def createExportScript(self, dialog):
         scriptLayout = QVBoxLayout()
-        scriptLabel = QLabel("Select Export Script:", dialog)
+        scriptLayout.setSpacing(6)
+        scriptLabel = QLabel("导出脚本", dialog)
+        scriptLabel.setObjectName("panelTitle")
         scriptLayout.addWidget(scriptLabel)
         self.m_scriptCombo = QComboBox(dialog)
-        self.m_scriptCombo.setFixedWidth(450)  # 设置固定宽度
-        self.m_scriptCombo.setEditable(False)  # 允许用户输入自定义路径
         self.m_scriptCombo.currentIndexChanged.connect(self.onScriptComboBoxChanged)
         scriptLayout.addWidget(self.m_scriptCombo)
         return scriptLayout
 
     def populateScriptComboBox(self):
-        customFolder = os.path.join(os.getcwd(), 'custom')
-        if not os.path.exists(customFolder):
-            self.m_scriptCombo.clear()
-            return
+        self.m_scriptCombo.clear()
+        customFolder = os.path.join(os.getcwd(), "custom")
         if not os.path.isdir(customFolder):
-            self.m_scriptCombo.clear()
             return
-        for fileName in os.listdir(customFolder):
-            if fileName in ['__init__.py', 'customBase.py']:
+        for fileName in sorted(os.listdir(customFolder)):
+            if fileName in ["__init__.py", "customBase.py"] or not fileName.endswith(".py"):
                 continue
             filePath = os.path.join(customFolder, fileName)
-            if not os.path.isfile(filePath):
-                continue
-            self.m_scriptCombo.addItem(filePath)
+            if os.path.isfile(filePath):
+                self.m_scriptCombo.addItem(fileName, filePath)
 
     def chooseExportFolder(self):
         rootPath = query("rootPath")
-        defaultPath = unpack(rootPath)
-        exportPath = QFileDialog.getExistingDirectory(self.m_window, "Choose Export Target", defaultPath)
+        defaultPath = unpack(rootPath) if rootPath else os.getcwd()
+        exportPath = QFileDialog.getExistingDirectory(self.m_window, "选择协议目录", defaultPath)
         if not exportPath:
             return
         self.m_exportFolder = exportPath
         self.m_folderEdit.setText(self.m_exportFolder)
 
     def chooseExportPath(self):
-        defaultPath = os.getcwd()
-        exportPath, _ = QFileDialog.getExistingDirectory(self.m_window, "Choose Export Path", defaultPath)
+        exportPath = QFileDialog.getExistingDirectory(self.m_window, "选择导出目录", self.m_exportPath or os.getcwd())
         if not exportPath:
             return
         self.m_exportPath = exportPath
         self.m_pathEdit.setText(self.m_exportPath)
 
-    def chooseExportScript(self):
-        defaultPath = os.getcwd()
-        scriptPath, _ = QFileDialog.getOpenFileName(self.m_window, "Choose Export Script", defaultPath, "Python Files (*.py)")
-        if not scriptPath:
-            return
-        self.m_exportScript = scriptPath
-
     def onScriptComboBoxChanged(self, index):
-        scriptPath = self.m_scriptCombo.itemText(index)
-        self.m_exportScript = scriptPath
+        if index < 0:
+            self.m_exportScript = None
+            return
+        self.m_exportScript = self.m_scriptCombo.itemData(index)
 
-    def showExportInfo(self, res=True):
-        dialog = QDialog(self.m_window)
-        dialog.setWindowTitle("Export Information")
-        dialog.resize(200, 150)
-        layout = QVBoxLayout()
-        
-        label = QLabel("Export completed successfully!", dialog)
-        if not res:
-            label = QLabel("Export fail!", dialog)
-        layout.addWidget(label)
-        
-        btnLayout = QHBoxLayout()
-        btnOk = QPushButton("OK", dialog)
-        btnOk.clicked.connect(dialog.accept)
-        btnLayout.addWidget(btnOk)
-        
-        layout.addLayout(btnLayout)
-        dialog.setLayout(layout)
-        dialog.exec_()
+    def onAppendExportInfo(self, text):
+        self.appendLog(text)
+
+    def appendLog(self, text):
+        if not self.m_logEdit:
+            return
+        self.m_logEdit.moveCursor(QTextCursor.End)
+        self.m_logEdit.insertPlainText(text)
+        self.m_logEdit.ensureCursorVisible()
 
     def doExport(self):
-        self.showExportInfo()
+        self.m_exportFolder = self.m_folderEdit.text().strip()
+        self.m_exportPath = self.m_pathEdit.text().strip()
+        self.m_logEdit.clear()
+        self.m_statusLabel.setText("正在导出…")
+        self.m_btnExport.setEnabled(False)
+        res = True
         try:
             data = {
                 "exportTarget": self.m_exportFolder,
@@ -177,7 +168,11 @@ class ExportManager:
             }
             exporter = Exporter(data)
             exporter.run()
-        except:
-            self.showExportInfo(False)
-        finally:
-            self.m_exportDialog.close()
+        except Exception as exc:
+            res = False
+            self.appendLog(f"\n{exc}\n")
+            self.m_statusLabel.setText("导出失败")
+        if res:
+            self.appendLog("\n导出完成。\n")
+            self.m_statusLabel.setText("导出完成")
+        self.m_btnExport.setEnabled(True)

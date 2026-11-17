@@ -19,18 +19,24 @@ class AddNodeDialog(QDialog):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Add Child Node")
+        self.setWindowTitle("添加字段")
         self.m_layout = QVBoxLayout()
-        self.setMinimumSize(300, 200)
-        self.m_typeLabel = QLabel("Node Type:")
+        self.m_layout.setContentsMargins(20, 18, 20, 18)
+        self.m_layout.setSpacing(8)
+        self.setMinimumSize(320, 220)
+        self.m_typeLabel = QLabel("类型")
+        self.m_typeLabel.setObjectName("panelTitle")
         self.m_typeComboBox = QComboBox()
         self.m_typeComboBox.addItems([
             "double", "float", "int32", "int64", "uint32", "uint64", "sint32", "sint64", 
             "fixed32", "fixed64", "sfixed32", "sfixed64", "bool", "string", "bytes", "map"
         ])
-        self.m_nameLabel = QLabel("Node Name:")
+        self.m_nameLabel = QLabel("字段名")
+        self.m_nameLabel.setObjectName("panelTitle")
         self.m_nameLineEdit = QLineEdit()
-        self.m_btnSubmit = QPushButton("Submit")
+        self.m_nameLineEdit.setPlaceholderText("userId")
+        self.m_btnSubmit = QPushButton("添加")
+        self.m_btnSubmit.setObjectName("primaryButton")
         self.m_btnSubmit.clicked.connect(self.onSubmitClicked)
         self.m_layout.addWidget(self.m_typeLabel)
         self.m_layout.addWidget(self.m_typeComboBox)
@@ -48,11 +54,11 @@ class AddNodeDialog(QDialog):
     def onSubmitClicked(self):
         nodeType = self.getNodeType()
         if not self.validTypeInput(nodeType):
-            QMessageBox.warning(self, "Invalid Input", "Node type error!!!")
+            QMessageBox.warning(self, "类型无效", "请选择字段类型。")
             return
         nodeName = self.getNodeName()
-        if not nodeName:
-            QMessageBox.warning(self, "Invalid Input", "Node name error!!!")
+        if not self.validNameInput(nodeName):
+            QMessageBox.warning(self, "名称无效", "字段名需要以字母或下划线开头。")
             return
         self.accept()
 
@@ -74,12 +80,17 @@ class AddRootNodeDialog(QDialog):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Add Root Node")
+        self.setWindowTitle("新建消息")
         self.m_layout = QVBoxLayout()
-        self.setMinimumSize(300, 200)
-        self.m_nameLabel = QLabel("Node Name (must start with S2C or C2S):")
+        self.m_layout.setContentsMargins(20, 18, 20, 18)
+        self.m_layout.setSpacing(8)
+        self.setMinimumSize(360, 180)
+        self.m_nameLabel = QLabel("消息名，以 C2S 或 S2C 开头")
+        self.m_nameLabel.setObjectName("panelTitle")
         self.m_nameLineEdit = QLineEdit()
-        self.m_btnSubmit = QPushButton("Submit")
+        self.m_nameLineEdit.setPlaceholderText("C2SLogin")
+        self.m_btnSubmit = QPushButton("创建")
+        self.m_btnSubmit.setObjectName("primaryButton")
         self.m_btnSubmit.clicked.connect(self.onSubmitClicked)
         self.m_layout.addWidget(self.m_nameLabel)
         self.m_layout.addWidget(self.m_nameLineEdit)
@@ -92,7 +103,7 @@ class AddRootNodeDialog(QDialog):
     def onSubmitClicked(self):
         nodeName = self.getNodeName()
         if not self.validNameInput(nodeName):
-            QMessageBox.warning(self, "Invalid Input", "Node name must start with S2C or C2S!!!")
+            QMessageBox.warning(self, "名称无效", "消息名需要以 C2S 或 S2C 开头。")
             return
         self.accept()
 

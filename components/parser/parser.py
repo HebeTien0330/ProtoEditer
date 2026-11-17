@@ -24,6 +24,7 @@ class Parser:
     def __init__(self):
         self.m_index = 1001
         self.m_protos = {}
+        self.m_documents = {}
         self.m_protoWriter = ProtoWriter()
         installEventSystem(self)
         self.listen("onDeleteFile", self.onDeleteFile)
@@ -39,6 +40,7 @@ class Parser:
     def reset(self):
         self.m_index = 1001
         self.m_protos = {}
+        self.m_documents = {}
         self.m_protoWriter.reset()
 
     def splitUppercase(target):
@@ -51,7 +53,7 @@ class Parser:
             return True
         if line.startswith("//"):
             return True
-        if line.startswith("/*"):
+        if line.startswith("/*") or line.startswith("*") or line.startswith("*/"):
             return True
         if line.startswith("syntax"):
             return True
@@ -59,39 +61,114 @@ class Parser:
             return True
         if line.startswith("option"):
             return True
+        if line.startswith("import"):
+            return True
         return False
 
-    def parser(self, fileName, context):
-        protoData = self.m_protos.get(fileName, {})
-        for line in context.splitlines():
-            line = line.strip().strip(";")      # 先删除字符串两端的影响
-            if self.canPass(line):
-                continue
-            if line.startswith("message"):
-                msgName = line.split(" ")[1].strip()
-                curProto = msgName
-                protoData[msgName] = { "ProtoIdx": self.m_index }
-                self.m_index += 1
-                continue
-            if line.startswith("}"):
-                curProto = None
-                continue
-            if line.startswith("repeated"):
-                _, keyType, key, _, no = line.split(" ")
-                protoData[curProto][key] = { "type": keyType, "no": int(no), "isRepeated": True }
-                continue
-            matchStr = re.match("^map<.+>", line)
-            if matchStr:
-                keyType = line[:matchStr.end()]
-                key, _, no = line[matchStr.end()+1:].split(" ")
-                protoData[curProto][key] = { "type": keyType, "no": int(no), "isRepeated": False }
-                continue
+    def cleanLine(self, line):
+        line = line.strip()
+        if "//" in line:
+            line = line.split("//", 1)[0]
+        return line.strip().strip(";")
 
-            keyType, key, _, no = line.split(" ")
-            protoData[curProto][key] = { "type": keyType, "no": int(no), "isRepeated": False }
+    def parser(self, fileName, context):
+        doc = self.scanDocument(context)
+        self.m_documents[fileName] = doc
+        protoData = self.toProtoData(doc)
         self.m_protos[fileName] = protoData
         self.m_protoWriter.open(fileName, protoData)
         return protoData
+
+    def scanDocument(self, context):
+        header = []
+        enums = []
+        messages = []
+        started = False
+        inEnum = None
+        inMessage = None
+        for rawLine in context.splitlines():
+            line = self.cleanLine(rawLine)
+            if not started:
+                if line.startswith("message") or line.startswith("enum ") or line.startswith("enum{"):
+                    started = True
+                else:
+                    header.append(rawLine)
+                    continue
+            if line.startswith("enum ") or line.startswith("enum{"):
+                enumName = line.split()[1].strip("{")
+                inEnum = { "name": enumName, "values": [] }
+                enums.append(inEnum)
+                inMessage = None
+                if "{" in line and line.endswith("}"):
+                    inEnum = None
+                continue
+            if line.startswith("message"):
+                msgName = line.split()[1].strip("{")
+                inMessage = { "name": msgName, "protoIdx": self.m_index, "fields": [] }
+                self.m_index += 1
+                messages.append(inMessage)
+                inEnum = None
+                if "{" in line and line.endswith("}"):
+                    inMessage = None
+                continue
+            if line.startswith("}"):
+                inEnum = None
+                inMessage = None
+                continue
+            if inEnum:
+                value = self.parseEnumValue(line)
+                if value:
+                    inEnum["values"].append(value)
+                continue
+            if not inMessage:
+                continue
+            field = self.parseField(line)
+            if not field:
+                continue
+            key, keyType, no, isRepeated = field
+            inMessage["fields"].append({
+                "name": key,
+                "type": keyType,
+                "no": no,
+                "isRepeated": isRepeated,
+            })
+        return { "header": header, "enums": enums, "messages": messages }
+
+    def parseEnumValue(self, line):
+        match = re.match(r'^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(-?\d+)\s*$', line)
+        if not match:
+            return None
+        return { "name": match.group(1), "no": int(match.group(2)) }
+
+    def toProtoData(self, doc):
+        protoData = {}
+        for msg in doc["messages"]:
+            protoData[msg["name"]] = { "ProtoIdx": msg["protoIdx"] }
+            for field in msg["fields"]:
+                protoData[msg["name"]][field["name"]] = {
+                    "type": field["type"],
+                    "no": field["no"],
+                    "isRepeated": field["isRepeated"],
+                }
+        return protoData
+
+    def parseField(self, line):
+        isRepeated = False
+        if line.startswith("repeated "):
+            isRepeated = True
+            line = line[len("repeated "):].strip()
+        elif line.startswith("optional "):
+            line = line[len("optional "):].strip()
+        elif line.startswith("required "):
+            line = line[len("required "):].strip()
+        mapMatch = re.match(r'^(map<[^>]+>)\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(\d+)\s*$', line)
+        if mapMatch:
+            keyType = re.sub(r'\s+', '', mapMatch.group(1))
+            return mapMatch.group(2), keyType, int(mapMatch.group(3)), False
+        match = re.match(r'^(.+?)\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(\d+)\s*$', line)
+        if not match:
+            return None
+        return match.group(2), match.group(1).strip(), int(match.group(3)), isRepeated
 
     def getProtos(self):
         return self.m_protos

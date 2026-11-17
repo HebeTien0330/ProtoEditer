@@ -8,8 +8,6 @@
 '''
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit
 from PyQt5.QtWidgets import QPushButton, QFileDialog, QDialogButtonBox, QApplication
-from components.cache import setCachePath
-from components.logger import setLogPath
 import os
 
 class NewProjectDialog(QDialog):
@@ -17,8 +15,10 @@ class NewProjectDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("新建项目")
-        self.setGeometry(100, 100, 500, 300)  # 增加对话框的宽度和高度
+        self.resize(520, 320)
         self.m_layout = QVBoxLayout()
+        self.m_layout.setContentsMargins(20, 18, 20, 18)
+        self.m_layout.setSpacing(8)
         self.setup()
         self.setLayout(self.m_layout)
         self.centerOnScreen()
@@ -30,14 +30,17 @@ class NewProjectDialog(QDialog):
         self.setupConfirm()
 
     def setupProjectName(self):
-        self.m_ProjectName = QLabel("项目名称:")
+        self.m_ProjectName = QLabel("项目名称")
+        self.m_ProjectName.setObjectName("panelTitle")
         self.m_layout.addWidget(self.m_ProjectName)
         self.m_projectNameEditer = QLineEdit()
+        self.m_projectNameEditer.setPlaceholderText("例如 room")
         self.m_layout.addWidget(self.m_projectNameEditer)
-        self.m_projectNameEditer.setText("NewProject.cache")
+        self.m_projectNameEditer.setText("NewProject")
 
     def setupSavePath(self):
-        self.m_savePath = QLabel("保存路径:")
+        self.m_savePath = QLabel("保存路径")
+        self.m_savePath.setObjectName("panelTitle")
         self.m_layout.addWidget(self.m_savePath)
         self.m_savePathLayout = QHBoxLayout()
         self.m_savePathEditer = QLineEdit()
@@ -51,7 +54,8 @@ class NewProjectDialog(QDialog):
         self.m_savePathEditer.setText(defaultSavePath)
 
     def setupLogPath(self):
-        self.m_logPath = QLabel("日志路径:")
+        self.m_logPath = QLabel("日志路径")
+        self.m_logPath.setObjectName("panelTitle")
         self.m_layout.addWidget(self.m_logPath)
         self.m_logPathLayout = QHBoxLayout()
         self.m_logPathEditer = QLineEdit()
@@ -75,7 +79,10 @@ class NewProjectDialog(QDialog):
 
         # 获取按钮框中的按钮
         ok_button = self.m_btnBox.button(QDialogButtonBox.Ok)
+        ok_button.setObjectName("primaryButton")
+        ok_button.setText("创建")
         cancel_button = self.m_btnBox.button(QDialogButtonBox.Cancel)
+        cancel_button.setText("取消")
 
         # 创建一个水平布局来放置按钮和间距
         btnLayout.addWidget(ok_button)
@@ -113,13 +120,9 @@ class NewProjectDialog(QDialog):
         return self.m_logPathEditer.text()
 
     def accept(self):
-        projectName = self.getProjectName()
-        savePath = self.getSavePath()
-        logPath = self.getLogPath()
+        projectName = self.getProjectName().strip()
+        savePath = self.getSavePath().strip()
+        logPath = self.getLogPath().strip()
         if not projectName or not savePath or not logPath:
             return
-        if not projectName.endswith(".cache"):
-            projectName += ".cache"
-        setLogPath(logPath)
-        setCachePath(f"{savePath}\\{projectName}")
         self.done(QDialog.Accepted)
