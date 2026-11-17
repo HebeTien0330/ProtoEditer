@@ -14,22 +14,32 @@ class NewFileDialog(QDialog):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("NewFile")
+        self.setWindowTitle("新建文件")
+        self.resize(460, 240)
         self.layout = QVBoxLayout()
-        self.label = QLabel("File Name:")
+        self.layout.setContentsMargins(20, 18, 20, 18)
+        self.layout.setSpacing(8)
+        self.label = QLabel("文件名")
+        self.label.setObjectName("panelTitle")
         self.layout.addWidget(self.label)
         self.fileNameLineEdit = QLineEdit()
+        self.fileNameLineEdit.setPlaceholderText("login.proto")
         self.layout.addWidget(self.fileNameLineEdit)
-        self.pathLabel = QLabel("Path:")
+        self.pathLabel = QLabel("目录")
+        self.pathLabel.setObjectName("panelTitle")
         self.layout.addWidget(self.pathLabel)
         self.pathLineEdit = QLineEdit()
         self.layout.addWidget(self.pathLineEdit)
-        self.browseButton = QPushButton("Browse")
+        self.browseButton = QPushButton("浏览")
         self.browseButton.clicked.connect(self.browsePath)
         self.layout.addWidget(self.browseButton)
         self.buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         self.buttonBox.accepted.connect(self.accept)
         self.buttonBox.rejected.connect(self.reject)
+        okButton = self.buttonBox.button(QDialogButtonBox.Ok)
+        okButton.setObjectName("primaryButton")
+        okButton.setText("创建")
+        self.buttonBox.button(QDialogButtonBox.Cancel).setText("取消")
         self.layout.addWidget(self.buttonBox)
         self.setLayout(self.layout)
         self.m_path = None
@@ -60,9 +70,9 @@ class NewFileDialog(QDialog):
     def accept(self):
         filePath = self.getFilePath()
         if not filePath:
-            QMessageBox.warning(self, "Invalid Input", "Please enter a valid file name and path.")
+            QMessageBox.warning(self, "无法创建", "请填写文件名和目录。")
             return
         if QDir(filePath).exists():
-            QMessageBox.warning(self, "File Exists", f"The file '{filePath}' already exists.")
+            QMessageBox.warning(self, "文件已存在", f"{filePath} 已经存在。")
             return
         super().accept()

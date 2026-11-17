@@ -37,5 +37,6 @@ class ManuBarManager:
         if callback is not None:
             action.triggered.connect(callback)
         menu.addAction(action)
+        return action
 
 

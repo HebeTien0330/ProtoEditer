@@ -6,11 +6,10 @@
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
-from components.utils import splitUppercase, checkOS
+from components.utils import splitUppercase, compileProtos
 from custom.customBase import CustomBase
 import os
 import json
-import subprocess
 
 class CustomScript(CustomBase):
     """
@@ -18,7 +17,7 @@ class CustomScript(CustomBase):
     """
     def __init__(self, targetDir):
         super().__init__(targetDir)
-        finalPath =  f"{self.m_targetDir}\\genForPython"
+        finalPath = os.path.join(self.m_targetDir, "genForPython")
         if not os.path.exists(finalPath):
             os.makedirs(finalPath)
         self.m_targetDir = finalPath
@@ -34,13 +33,13 @@ class CustomScript(CustomBase):
                 _protocol =  prefix + "_" + "_".join(map(lambda x: x.lower(), splitUppercase(protocol[3:])))
                 ret[_protocol] = protocol
 
-        with open(f"{self.m_targetDir}\\protoMap.json", "w", encoding="utf-8") as file:
+        with open(os.path.join(self.m_targetDir, "protoMap.json"), "w", encoding="utf-8") as file:
             file.write(json.dumps(ret, indent=4, ensure_ascii=False))
         self.log("create proto map finish")
 
     def createProtoFile(self, protosData):
         self.log("creating proto file...")
-        protosDir = f"{self.m_targetDir}\\proto"
+        protosDir = os.path.join(self.m_targetDir, "proto")
         if not os.path.exists(protosDir):
             os.makedirs(protosDir)
         self.Aggregate(protosDir, protosData)
@@ -102,18 +101,14 @@ message MessageWrapper {
 
     def genCode(self):
         self.log("start creating code...")
-        curOs = checkOS()
-        codeDir = f"{self.m_targetDir}\\code"
+        codeDir = os.path.join(self.m_targetDir, "code")
         if not os.path.exists(codeDir):
-            os.mkdir(codeDir)
-        protoDir = f"{self.m_targetDir}\\proto"
-        if curOs == "Windows":
-            command = f"{os.getcwd()}\\tools\\protoc.exe --python_out={codeDir} --proto_path={protoDir} {protoDir}\\*.proto"
-            subprocess.run(['powershell', '-Command', command], capture_output=True, text=True)
-            return
-        if curOs == "Linux":
-            command = f"{os.getcwd()}/tools/protoc --python_out={codeDir} --proto_path={protoDir} {protoDir}/*.proto"
-            subprocess.run([command], capture_output=True, text=True)
+            os.makedirs(codeDir)
+        protoDir = os.path.join(self.m_targetDir, "proto")
+        ok, message = compileProtos("python_out", codeDir, protoDir)
+        if not ok:
+            self.log(message)
+            raise RuntimeError(message)
         self.log("create code finish...")
 
     def run(self, protosData):

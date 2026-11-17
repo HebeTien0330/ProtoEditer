@@ -35,14 +35,16 @@ class Exporter:
     def run(self):
         exportTarget = self.m_data.get("exportTarget")
         if not exportTarget or not os.path.isdir(exportTarget):
-            return
+            raise ValueError("请选择有效的协议目录")
         exportPath = self.m_data.get("exportPath")
         if not exportPath or not os.path.isdir(exportPath):
-            return
+            raise ValueError("请选择有效的导出目录")
         exportScript = self.m_data.get("exportScript")
         if not exportScript or not os.path.isfile(exportScript):
-            return
+            raise ValueError("请选择 custom 目录中的导出脚本")
         protosData = self.getProtosData(exportTarget)
+        if not protosData:
+            raise ValueError("协议目录里没有可解析的 .proto 文件")
         spec = importlib.util.spec_from_file_location("customScript", exportScript)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)

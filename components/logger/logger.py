@@ -15,7 +15,7 @@ class Logger:
 
     def __init__(self):
         self.m_fileHandles = {}
-        self.m_path = f"{os.getcwd()}\\log"
+        self.m_path = os.path.join(os.getcwd(), "log")
         self.m_maxFiles = 10
         self.m_persist = False
         self.init()

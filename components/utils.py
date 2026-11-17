@@ -6,8 +6,11 @@
 :Description: 
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
+import glob
 import os
 import re
+import subprocess
+import sys
 
 class Functor:
 
@@ -33,12 +36,54 @@ def swapDictKeys(target, key1, key2):
     return {key: target[key] for key in keys}
 
 def checkOS():
-    osName = os.name
-    if osName == 'nt':
+    if os.name == 'nt':
         return 'Windows'
-    if osName == 'posix':
+    if sys.platform == 'darwin':
+        return 'Darwin'
+    if os.name == 'posix':
         return 'Linux'
     return 'Unknown'
+
+def getProtocPath():
+    protocName = 'protoc'
+    if checkOS() == 'Windows':
+        protocName = 'protoc.exe'
+    return os.path.join(os.getcwd(), 'tools', protocName)
+
+def runCommand(command):
+    try:
+        result = subprocess.run(command, capture_output=True, text=True)
+    except OSError as exc:
+        if not exc:
+            return False, '命令无法执行'
+        return False, str(exc)
+    if result.returncode == 0:
+        return True, (result.stdout or '').strip()
+    detail = (result.stderr or result.stdout or '').strip()
+    if not detail:
+        detail = '命令退出码 %s' % result.returncode
+    return False, detail
+
+def compileProtos(outFlag, outDir, protoDir):
+    binary = getProtocPath()
+    if not os.path.isfile(binary):
+        return False, '未找到 protoc：%s' % binary
+    protos = sorted(glob.glob(os.path.join(protoDir, '*.proto')))
+    if not protos:
+        return False, '没有可编译的 .proto 文件'
+    command = [binary, '--%s=%s' % (outFlag, outDir), '--proto_path=%s' % protoDir]
+    command.extend(protos)
+    ok, message = runCommand(command)
+    if ok:
+        return True, 'protoc 完成'
+    if checkOS() != 'Darwin':
+        if not message:
+            return False, 'protoc 执行失败'
+        return False, message
+    darwinMsg = '当前 tools/protoc 无法在 macOS 上运行，代码生成已跳过。proto 文件已经写出。请安装对应平台的 protoc，或把可执行文件放到 tools/protoc。'
+    if message:
+        darwinMsg = darwinMsg + '\n' + message
+    return False, darwinMsg
 
 def splitUppercase(s):
     # 使用正则表达式找到所有大写字母及其前面的部分

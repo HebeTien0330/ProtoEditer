@@ -7,14 +7,13 @@
 :Copyright: Copyright (©) 2025 Clarify. All rights reserved.
 '''
 
-from PyQt5.QtWidgets import QMainWindow, QTabWidget, QTabBar
+from PyQt5.QtWidgets import QMainWindow, QTabWidget, QTabBar, QMessageBox
 from PyQt5.QtCore import Qt, pyqtSignal
 from components.utils import getFileNameInPath
-from components.parser import getParser
 from components.cache import package, save, update, query, unpack
 from components.event import installEventSystem
 from .viewPage import ViewPage
-from .graphPage import GraphPage
+from .protoEditorPage import ProtoEditorPage
 import os
 
 class CustomTabBar(QTabBar):
@@ -46,7 +45,7 @@ class ViewsManager:
     def __init__(self, window: QMainWindow):
         self.m_window = window
         self.m_viewPage = None
-        self.m_graphMap = {}
+        self.m_pageMap = {}
         self.m_pathMap = {}
         self.m_tabs = QTabWidget()
         customTabBar = CustomTabBar(self.m_tabs)
@@ -58,9 +57,12 @@ class ViewsManager:
         self.listen("onSave", self.save)
         self.listen("onRefreshViews", self.refreshCurrentView)
         self.listen("onDeleteFile", self.deleteFile)
+        self.listen("onNewProject", self.onNewProject)
         self.load()
 
     def save(self):
+        for page in self.m_pageMap.values():
+            page.saveFile()
         tabsInfo = []
         for fileName, path in self.m_pathMap.items():
             content = self.getCurrentTabContent(path)
@@ -89,40 +91,33 @@ class ViewsManager:
             return 
         fileName = getFileNameInPath(path)
         # 检查文件是否已经打开
-        if fileName in self.m_graphMap:
+        if fileName in self.m_pageMap:
             self.swapView(fileName)
             return
-        graphPage = GraphPage(self.m_window)
-        graphWidget = graphPage.m_tab
-        index = self.m_tabs.addTab(graphWidget, fileName)
-        self.m_tabs.setCurrentIndex(index)
-
         if not self.m_viewPage:
             self.m_viewPage = ViewPage(self.m_window)
-        self.m_viewPage.update(content)
-
-        parser = getParser()
-        protos = {}
-        try:
-            protos = parser.parser(path, content)
-        except Exception as e:
-            pass
-        graphPage.update(fileName, protos)
-
-        self.m_graphMap[fileName] = graphPage
+        page = ProtoEditorPage(self.m_window)
+        page.bindPreview(self.m_viewPage)
+        page.load(path, content)
+        index = self.m_tabs.addTab(page.m_tab, fileName)
+        self.m_tabs.setCurrentIndex(index)
+        self.m_pageMap[fileName] = page
         self.m_pathMap[fileName] = path
         self.m_window.replaceMainContent(self.m_tabs)
 
     def updateView(self, fileName, mode="all"):
+        page = self.m_pageMap.get(fileName)
         path = self.m_pathMap.get(fileName)
-        parser = getParser()
-        content = self.getCurrentTabContent(path)
-        protos = parser.parser(path, content)
-        self.m_viewPage.update(content)
-        graphPage = self.m_graphMap.get(fileName)
-        if not graphPage or mode != "all":
+        if not page or not path:
             return
-        graphPage.update(fileName, protos)
+        if page.m_dirty:
+            if self.m_viewPage:
+                self.m_viewPage.update(page.m_text)
+                page.revealCurrent()
+            return
+        content = self.getCurrentTabContent(path)
+        page.bindPreview(self.m_viewPage)
+        page.load(path, content)
 
     def swapView(self, fileName):
         index = self.getIndexByFileName(fileName)
@@ -132,7 +127,7 @@ class ViewsManager:
 
     def onTabChanged(self, index):
         fileName = self.m_tabs.tabText(index)
-        if fileName not in self.m_graphMap:
+        if fileName not in self.m_pageMap:
             return
         self.updateView(fileName)
 
@@ -145,12 +140,37 @@ class ViewsManager:
 
     def onTabClose(self, index):
         fileName = self.m_tabs.tabText(index)
+        page = self.m_pageMap.get(fileName)
+        if page and page.m_dirty:
+            reply = QMessageBox.question(
+                self.m_window,
+                "保存",
+                "保存对 %s 的修改吗？" % fileName,
+                QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel,
+                QMessageBox.Yes,
+            )
+            if reply == QMessageBox.Cancel:
+                return
+            if reply == QMessageBox.Yes:
+                page.saveFile()
         self.m_tabs.removeTab(index)
         del self.m_pathMap[fileName]
-        del self.m_graphMap[fileName]
+        del self.m_pageMap[fileName]
         if self.m_tabs.count() > 0:
             return
-        self.m_viewPage.update("")
+        if self.m_viewPage:
+            self.m_viewPage.update("")
+        self.m_window.showWelcome()
+        self.save()
+
+    def onNewProject(self):
+        while self.m_tabs.count():
+            self.m_tabs.removeTab(0)
+        self.m_pathMap.clear()
+        self.m_pageMap.clear()
+        if self.m_viewPage:
+            self.m_viewPage.update("")
+        self.m_window.showWelcome()
         self.save()
 
     def refreshCurrentView(self, mode="all"):
@@ -162,6 +182,16 @@ class ViewsManager:
         if not path:
             return  # 路径不存在
         self.updateView(fileName, mode)
+
+    def focusSearch(self):
+        index = self.m_tabs.currentIndex()
+        if index < 0:
+            return
+        fileName = self.m_tabs.tabText(index)
+        page = self.m_pageMap.get(fileName)
+        if not page:
+            return
+        page.focusSearch()
 
     def deleteFile(self, filePath):
         fileName = getFileNameInPath(filePath)

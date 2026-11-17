@@ -9,9 +9,9 @@
 
 from PyQt5.QtWidgets import QMainWindow, QGraphicsScene, QGraphicsView, QWidget, QGraphicsDropShadowEffect
 from PyQt5.QtWidgets import QGraphicsRectItem, QVBoxLayout, QGraphicsTextItem, QGraphicsLineItem, QMenu
-from PyQt5.QtWidgets import QDialog, QMessageBox
-from PyQt5.QtGui import QPen, QBrush, QColor, QWheelEvent
-from PyQt5.QtCore import Qt, QRectF
+from PyQt5.QtWidgets import QDialog, QMessageBox, QFrame
+from PyQt5.QtGui import QPen, QBrush, QColor, QWheelEvent, QPainter, QFont
+from PyQt5.QtCore import Qt, QRectF, QTimer
 from components.event import installEventSystem
 from .addNodeDialog import AddNodeDialog, AddRootNodeDialog
 from .editNodeDialog import EditNodeDialog
@@ -20,6 +20,10 @@ class CustomGraphicsView(QGraphicsView):
     def __init__(self, scene, graphPage):
         super().__init__(scene)
         self.m_graphPage = graphPage
+        self.setRenderHints(QPainter.Antialiasing | QPainter.TextAntialiasing)
+        self.setFrameShape(QFrame.NoFrame)
+        self.setBackgroundBrush(QBrush(QColor("#14161e")))
+        self.setDragMode(QGraphicsView.ScrollHandDrag)
 
     def calcZoomFactor(self, event):
         zoomFactor = 1.25
@@ -44,13 +48,13 @@ class CustomGraphicsView(QGraphicsView):
         pos = self.mapToScene(event.pos())
         if self.m_graphPage.canEditRootNode(pos):
             contextMenu = QMenu(self)
-            addAction = contextMenu.addAction("Add Child Node")
+            addAction = contextMenu.addAction("添加字段")
             contextMenu.addSeparator()
-            deleteAction = contextMenu.addAction("Delete Root Node")
+            deleteAction = contextMenu.addAction("删除消息")
             contextMenu.addSeparator()
-            moveUpAction = contextMenu.addAction("Move Up")
+            moveUpAction = contextMenu.addAction("上移")
             contextMenu.addSeparator()
-            moveDownAction = contextMenu.addAction("Move Down")
+            moveDownAction = contextMenu.addAction("下移")
             action = contextMenu.exec_(self.mapToGlobal(event.pos()))
             if action == addAction:
                 self.showAddNodeDialog(pos)
@@ -62,13 +66,13 @@ class CustomGraphicsView(QGraphicsView):
                 self.m_graphPage.moveRootNodeDown(pos)
         elif self.m_graphPage.canEditChildNode(pos):
             contextMenu = QMenu(self)
-            editAction = contextMenu.addAction("Edit Child Node")
+            editAction = contextMenu.addAction("编辑字段")
             contextMenu.addSeparator()
-            moveUpAction = contextMenu.addAction("Move Up")
+            moveUpAction = contextMenu.addAction("上移")
             contextMenu.addSeparator()
-            moveDownAction = contextMenu.addAction("Move Down")
+            moveDownAction = contextMenu.addAction("下移")
             contextMenu.addSeparator()
-            deleteAction = contextMenu.addAction("Delete Node")
+            deleteAction = contextMenu.addAction("删除字段")
             action = contextMenu.exec_(self.mapToGlobal(event.pos()))
             if action == editAction:
                 self.showEditNodeDialog(pos)
@@ -80,7 +84,7 @@ class CustomGraphicsView(QGraphicsView):
                 self.showDeleteNodeDialog(pos)
         else:
             contextMenu = QMenu(self)
-            newAction = contextMenu.addAction("New Root Node")
+            newAction = contextMenu.addAction("新建消息")
             action = contextMenu.exec_(self.mapToGlobal(event.pos()))
             if action == newAction:
                 self.showNewRootNodeDialog(pos)
@@ -103,8 +107,8 @@ class CustomGraphicsView(QGraphicsView):
 
     def showDeleteNodeDialog(self, pos):
         dialog = QMessageBox(self)
-        dialog.setWindowTitle("Delete Node")
-        dialog.setText("Are you sure you want to delete this node?")
+        dialog.setWindowTitle("删除")
+        dialog.setText("确定删除这个节点吗？")
         dialog.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         dialog.setDefaultButton(QMessageBox.No)
         if dialog.exec_() != QMessageBox.Yes:
@@ -136,9 +140,9 @@ class GraphPage:
     def setup(self):
         self.m_tab = QWidget()
         layout = QVBoxLayout(self.m_tab)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.m_view)
         self.m_scene.setSceneRect(-5000, -5000, 10000, 20000)
-        # 隐藏水平和垂直滚动条
         self.m_view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.m_view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
@@ -149,6 +153,14 @@ class GraphPage:
         offsetY = 50
         self.drawTree(protos, offsetX, offsetY)
         self.updateSceneRect()
+        QTimer.singleShot(0, self.fitGraph)
+
+    def fitGraph(self):
+        bounds = self.m_scene.itemsBoundingRect().adjusted(-48, -48, 48, 48)
+        if not bounds.isValid() or bounds.isEmpty():
+            return
+        self.m_view.resetTransform()
+        self.m_view.fitInView(bounds, Qt.KeepAspectRatio)
 
     def updateSceneRect(self):
         allItems = self.m_scene.items()
@@ -172,10 +184,19 @@ class GraphPage:
     def createNameText(self, fieldName):
         return QGraphicsTextItem(fieldName)
 
-    def createRectWithText(self, x, y, index, fieldType, fieldName, color):
+    def createRectWithText(self, x, y, index, fieldType, fieldName, color, textColor=None):
         indexText = self.createIndexText(index)
         typeText = self.createTypeText(fieldType)
         nameText = self.createNameText(fieldName)
+        colorForText = textColor or QColor("#1c2130")
+        font = QFont("PingFang SC", 12)
+        nameFont = QFont("PingFang SC", 12)
+        nameFont.setWeight(QFont.DemiBold)
+        for item in (indexText, typeText):
+            item.setDefaultTextColor(colorForText)
+            item.setFont(font)
+        nameText.setDefaultTextColor(colorForText)
+        nameText.setFont(nameFont)
 
         indexRect = indexText.boundingRect()
         typeRect = typeText.boundingRect()
@@ -190,14 +211,13 @@ class GraphPage:
 
         rect = QGraphicsRectItem(x, y, totalWidth, totalHeight)
         rect.setBrush(QBrush(color))
-        rect.setPen(QPen(Qt.black))
+        rect.setPen(QPen(QColor(255, 255, 255, 28), 1))
         rect.setFlag(QGraphicsRectItem.ItemIsMovable, False)
 
-        # 添加阴影效果
         shadow = QGraphicsDropShadowEffect()
-        shadow.setBlurRadius(8)  # 设置模糊半径
-        shadow.setColor(QColor(0, 0, 0, 128))  # 设置阴影颜色和透明度
-        shadow.setOffset(4, 4)  # 设置阴影偏移量
+        shadow.setBlurRadius(18)
+        shadow.setColor(QColor(0, 0, 0, 90))
+        shadow.setOffset(0, 6)
         rect.setGraphicsEffect(shadow)
 
         indexText.setPos(x + 10, y + (totalHeight - indexHeight) / 2)
@@ -211,7 +231,9 @@ class GraphPage:
             if not isinstance(msgData, dict):
                 continue
 
-            msgRect, indexText, typeText, nameText = self.createRectWithText(x, y, "", "", msgName, QColor(200, 200, 200))
+            msgRect, indexText, typeText, nameText = self.createRectWithText(
+                x, y, "", "", msgName, QColor("#4c63d2"), QColor("#f5f7ff")
+            )
             self.m_scene.addItem(msgRect)
             self.m_scene.addItem(indexText)
             self.m_scene.addItem(typeText)
@@ -505,20 +527,20 @@ class GraphPage:
 
     def getFieldColor(self, fieldType):
         if fieldType in ["double", "float"]:
-            return QColor(173, 216, 230)  # 浅蓝色
+            return QColor("#d3ebff")
         if fieldType in ["int32", "int64", "uint32", "uint64", "sint32", "sint64", "fixed32", "fixed64", "sfixed32", "sfixed64"]:
-            return QColor(173, 255, 173)  # 浅绿色
+            return QColor("#d7f5e3")
         if fieldType == "bool":
-            return QColor(216, 173, 230)  # 浅紫色
+            return QColor("#eadcfc")
         if fieldType == "string":
-            return QColor(255, 173, 173)  # 浅红色
+            return QColor("#ffd9df")
         if fieldType == "bytes":
-            return QColor(200, 200, 200)  # 浅灰色
-        if fieldType == "map":
-            return QColor(255, 255, 173)  # 浅黄色
-        return QColor(200, 200, 200)  # 默认浅灰色
+            return QColor("#e6e8f2")
+        if fieldType.startswith("map"):
+            return QColor("#fff1c4")
+        return QColor("#e6e8f2")
 
     def createLine(self, start, end):
         line = QGraphicsLineItem(start[0], start[1], end[0], end[1])
-        line.setPen(QPen(Qt.black))
+        line.setPen(QPen(QColor("#8ea0e8"), 2))
         return line
